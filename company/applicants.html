@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applicants — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Company Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="post-job.html" class="nav-item"><span class="nav-icon">➕</span> Post a Job</a>
+      <a href="applicants.html" class="nav-item active"><span class="nav-icon">👥</span> Applicants</a>
+      <a href="schedule.html" class="nav-item"><span class="nav-icon">📅</span> Interviews</a>
+      <div class="nav-section-label">Account</div>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">C</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Company</div>
+          <div class="sidebar-user-role">Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Applicants</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔</button>
+        <div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">C</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Manage Applicants</h1>
+        <p>Review, shortlist, and update candidate status — they get notified by email automatically.</p>
+      </div>
+
+      <!-- JOB FILTER -->
+      <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
+          <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+            <label class="form-label">Filter by Job</label>
+            <select id="filter-job" class="form-input form-select" onchange="loadApplicants()">
+              <option value="">All Jobs</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Status</label>
+            <select id="filter-status" class="form-input form-select" onchange="filterApplicants()">
+              <option value="">All Statuses</option>
+              <option value="applied">Applied</option>
+              <option value="shortlisted">Shortlisted</option>
+              <option value="interviewed">Interviewed</option>
+              <option value="selected">Selected</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Search</label>
+            <input type="text" id="filter-search" class="form-input" placeholder="Student name..." oninput="filterApplicants()" style="width:200px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- APPLICANTS TABLE -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Applicants <span id="app-count-label" style="color:var(--gray-400);font-weight:400;font-size:0.875rem;"></span></h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="bulkAction('shortlisted')">⭐ Shortlist Selected</button>
+            <button class="btn btn-ghost btn-sm" onclick="bulkAction('rejected')" style="color:var(--red);">✕ Reject Selected</button>
+          </div>
+        </div>
+        <div id="applicants-table">
+          <div class="empty-state" style="padding:60px;">
+            <div class="empty-state-icon">⏳</div>
+            <h3>Loading applicants...</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- APPLICANT DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <h3 id="detail-name">Applicant Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- SCHEDULE INTERVIEW MODAL -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Schedule Interview</h3>
+      <button class="modal-close" onclick="closeSchedule()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="schedule-for" style="background:var(--gray-50);border-radius:8px;padding:14px;margin-bottom:20px;font-weight:600;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Date <span style="color:var(--red)">*</span></label>
+          <input type="date" id="int-date" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time <span style="color:var(--red)">*</span></label>
+          <input type="time" id="int-time" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Interview Mode</label>
+        <select id="int-mode" class="form-input form-select">
+          <option>In-person</option>
+          <option>Video Call (Zoom/Meet)</option>
+          <option>Phone Call</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location / Meeting Link</label>
+        <input type="text" id="int-location" class="form-input" placeholder="e.g. Office Room 3B or zoom.us/j/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes for Candidate</label>
+        <textarea id="int-notes" class="form-input form-textarea" style="min-height:80px;" placeholder="What to prepare, bring, or expect..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="confirmSchedule()" id="schedule-btn">
+        📅 Schedule & Notify Student
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('company');
+let allApplicants = [];
+let selectedAppId = null;
+let selectedStudentName = '';
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  loadJobs();
+  loadApplicants();
+}
+
+async function loadJobs() {
+  try {
+    const res = await API.get('/companies/jobs');
+    const select = document.getElementById('filter-job');
+    (res.jobs || []).forEach(j => {
+      const opt = document.createElement('option');
+      opt.value = j.id; opt.textContent = j.title;
+      select.appendChild(opt);
+    });
+  } catch (e) {
+    ['Software Engineer','Data Analyst','IT Intern'].forEach((t, i) => {
+      const opt = document.createElement('option');
+      opt.value = i+1; opt.textContent = t;
+      document.getElementById('filter-job').appendChild(opt);
+    });
+  }
+}
+
+async function loadApplicants() {
+  const jobId = document.getElementById('filter-job').value;
+  const url = jobId ? `/companies/applicants?job_id=${jobId}` : '/companies/applicants';
+  try {
+    const res = await API.get(url);
+    allApplicants = res.applications || [];
+    filterApplicants();
+  } catch (e) {
+    allApplicants = getDemoApplicants();
+    filterApplicants();
+  }
+}
+
+function filterApplicants() {
+  const status = document.getElementById('filter-status').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  let filtered = allApplicants.filter(a => {
+    const matchStatus = !status || a.status === status;
+    const matchSearch = !search || a.student_name.toLowerCase().includes(search);
+    return matchStatus && matchSearch;
+  });
+  renderApplicants(filtered);
+}
+
+function renderApplicants(apps) {
+  document.getElementById('app-count-label').textContent = `(${apps.length} applicant${apps.length !== 1 ? 's' : ''})`;
+  const el = document.getElementById('applicants-table');
+  if (!apps.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:60px;"><div class="empty-state-icon">👥</div><h3>No applicants found</h3><p>Try adjusting the filters</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th><input type="checkbox" id="select-all" onchange="toggleAll(this)"></th>
+      <th>Student</th><th>Applied For</th><th>CGPA</th><th>Applied</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+      ${apps.map(a => `<tr>
+        <td><input type="checkbox" class="app-check" value="${a.id}"></td>
+        <td class="td-name">
+          <div class="avatar" style="width:34px;height:34px;font-size:0.8rem;">${a.student_name.charAt(0)}</div>
+          <div>
+            <div>${a.student_name}</div>
+            <div class="text-xs text-muted">${a.student_email || ''}</div>
+          </div>
+        </td>
+        <td style="font-size:0.875rem;">${a.job_title}</td>
+        <td><strong>${a.cgpa || '—'}</strong></td>
+        <td class="text-sm text-muted">${timeAgo(a.applied_at)}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="viewApplicant(${JSON.stringify(a).replace(/"/g,'&quot;')})">View</button>
+            ${a.status === 'applied' ? `<button class="btn btn-sm" style="background:#FFFBEB;color:var(--orange);font-size:0.75rem;" onclick="updateStatus(${a.id},'shortlisted','${a.student_name}')">⭐ Shortlist</button>` : ''}
+            ${a.status === 'shortlisted' ? `<button class="btn btn-sm" style="background:#EFF6FF;color:var(--blue);font-size:0.75rem;" onclick="openSchedule(${a.id},'${a.student_name}')">📅 Interview</button>` : ''}
+            ${a.status === 'interviewed' ? `<button class="btn btn-sm" style="background:#ECFDF5;color:var(--green);font-size:0.75rem;" onclick="updateStatus(${a.id},'selected','${a.student_name}')">✅ Select</button>` : ''}
+            ${!['rejected','selected'].includes(a.status) ? `<button class="btn btn-sm" style="background:#FEF2F2;color:var(--red);font-size:0.75rem;" onclick="updateStatus(${a.id},'rejected','${a.student_name}')">✕</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function updateStatus(appId, status, name) {
+  const labels = { shortlisted:'shortlisted', selected:'selected', rejected:'rejected', interviewed:'interviewed' };
+  if (!confirm(`Mark ${name} as "${labels[status]}"?\n\nThey will receive an email notification.`)) return;
+  try {
+    await API.put(`/applications/${appId}/status`, { status });
+    showToast(`✅ ${name} marked as ${status}. Email sent!`, 'success');
+    loadApplicants();
+  } catch (e) {
+    // Demo mode
+    const app = allApplicants.find(a => a.id === appId);
+    if (app) app.status = status;
+    filterApplicants();
+    showToast(`✅ ${name} marked as ${status}. (Demo mode)`, 'success');
+  }
+}
+
+function viewApplicant(app) {
+  document.getElementById('detail-name').textContent = app.student_name;
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div class="avatar avatar-lg">${app.student_name.charAt(0)}</div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;">${app.student_name}</div>
+        <div style="color:var(--gray-400);font-size:0.875rem;">${app.student_email || 'Email not available'}</div>
+        <div style="margin-top:6px;">${statusBadge(app.status)}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">APPLIED FOR</div>
+        <div style="font-weight:600;">${app.job_title}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">CGPA</div>
+        <div style="font-weight:600;font-size:1.1rem;">${app.cgpa || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">BRANCH</div>
+        <div style="font-weight:600;">${app.branch || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">APPLIED</div>
+        <div style="font-weight:600;">${formatDate(app.applied_at)}</div>
+      </div>
+    </div>
+    ${app.cover_letter ? `<div style="margin-bottom:16px;"><div class="text-xs text-muted" style="margin-bottom:8px;">COVER LETTER</div><div style="background:var(--gray-50);border-radius:8px;padding:14px;font-size:0.875rem;line-height:1.6;">${app.cover_letter}</div></div>` : ''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      ${app.status === 'applied' ? `<button class="btn btn-primary" onclick="updateStatus(${app.id},'shortlisted','${app.student_name}');closeModal()">⭐ Shortlist</button>` : ''}
+      ${app.status === 'shortlisted' ? `<button class="btn btn-primary" onclick="closeModal();openSchedule(${app.id},'${app.student_name}')">📅 Schedule Interview</button>` : ''}
+      ${app.status === 'interviewed' ? `<button class="btn btn-success" onclick="updateStatus(${app.id},'selected','${app.student_name}');closeModal()">✅ Select Candidate</button>` : ''}
+      ${!['rejected','selected'].includes(app.status) ? `<button class="btn btn-danger" onclick="updateStatus(${app.id},'rejected','${app.student_name}');closeModal()">✕ Reject</button>` : ''}
+    </div>`;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function openSchedule(appId, name) {
+  selectedAppId = appId;
+  selectedStudentName = name;
+  document.getElementById('schedule-for').textContent = `📅 Scheduling interview for: ${name}`;
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('int-date').min = tomorrow.toISOString().split('T')[0];
+  document.getElementById('scheduleModal').classList.add('open');
+}
+
+async function confirmSchedule() {
+  const date  = document.getElementById('int-date').value;
+  const time  = document.getElementById('int-time').value;
+  const mode  = document.getElementById('int-mode').value;
+  const loc   = document.getElementById('int-location').value;
+  const notes = document.getElementById('int-notes').value;
+  const btn   = document.getElementById('schedule-btn');
+
+  if (!date || !time) { showToast('Please select date and time.', 'error'); return; }
+
+  btn.textContent = 'Scheduling...'; btn.disabled = true;
+  try {
+    await API.post('/interviews', {
+      application_id: selectedAppId,
+      scheduled_at: `${date}T${time}`,
+      mode, location: loc, notes
+    });
+    closeSchedule();
+    showToast(`📅 Interview scheduled! ${selectedStudentName} has been notified by email.`, 'success');
+    loadApplicants();
+  } catch (e) {
+    closeSchedule();
+    showToast(`📅 Interview scheduled! ${selectedStudentName} notified. (Demo mode)`, 'success');
+  }
+  btn.textContent = '📅 Schedule & Notify Student'; btn.disabled = false;
+}
+
+function closeModal()    { document.getElementById('detailModal').classList.remove('open'); }
+function closeSchedule() { document.getElementById('scheduleModal').classList.remove('open'); }
+
+function toggleAll(checkbox) {
+  document.querySelectorAll('.app-check').forEach(c => c.checked = checkbox.checked);
+}
+
+function bulkAction(status) {
+  const checked = [...document.querySelectorAll('.app-check:checked')].map(c => parseInt(c.value));
+  if (!checked.length) { showToast('Select at least one applicant first.', 'error'); return; }
+  if (!confirm(`Update ${checked.length} applicant(s) to "${status}"?\n\nAll selected students will receive an email.`)) return;
+  Promise.all(checked.map(id => API.put(`/applications/${id}/status`, { status }).catch(() => null)))
+    .then(() => { showToast(`✅ ${checked.length} applicant(s) updated. Emails sent!`, 'success'); loadApplicants(); });
+}
+
+function getDemoApplicants() {
+  return [
+    { id:1, student_name:'Alice Mukamana', student_email:'alice@ur.ac.rw', job_title:'Software Engineer', cgpa:'3.8', branch:'Computer Science', status:'shortlisted', applied_at: new Date(Date.now()-2*86400000).toISOString(), cover_letter:'I am a passionate developer with 2 years of experience...' },
+    { id:2, student_name:'Bob Nzeyimana', student_email:'bob@auca.ac.rw', job_title:'Software Engineer', cgpa:'3.5', branch:'IT', status:'applied', applied_at: new Date(Date.now()-86400000).toISOString() },
+    { id:3, student_name:'Claire Uwase', student_email:'claire@ur.ac.rw', job_title:'Data Analyst', cgpa:'3.9', branch:'Mathematics', status:'applied', applied_at: new Date(Date.now()-3*86400000).toISOString() },
+    { id:4, student_name:'David Habimana', student_email:'david@auca.ac.rw', job_title:'IT Intern', cgpa:'3.2', branch:'Computer Science', status:'interviewed', applied_at: new Date(Date.now()-5*86400000).toISOString() },
+    { id:5, student_name:'Eve Ingabire', student_email:'eve@ur.ac.rw', job_title:'Software Engineer', cgpa:'3.7', branch:'Computer Science', status:'selected', applied_at: new Date(Date.now()-7*86400000).toISOString() },
+  ];
+}
+</script>
+</body>
+</html>

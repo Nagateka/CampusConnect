@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applications — CampusConnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html"         class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item active"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html"      class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html"    class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">All Applications</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="Search student, job, company..." oninput="filterApps()">
+      </div>
+      <div class="topbar-actions">
+        <div class="avatar" style="background:#EF4444;width:36px;height:36px;font-size:0.875rem;" id="topbar-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>Platform-Wide Applications</h1>
+            <p id="apps-count-label">Loading...</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getExportData(),'applications')">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- STATUS TABS -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="filterByStatus('')" id="tab-all">All</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('applied')" id="tab-applied">Applied</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('shortlisted')" id="tab-shortlisted">⭐ Shortlisted</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('interviewed')" id="tab-interviewed">📅 Interviewed</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('selected')" id="tab-selected">🏆 Selected</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('rejected')" id="tab-rejected">Rejected</button>
+      </div>
+
+      <!-- STATS -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;">
+        <div class="stat-card" style="padding:16px;"><div class="stat-info"><div class="stat-value" id="s-total" style="font-size:1.4rem;">0</div><div class="stat-label">Total</div></div></div>
+        <div class="stat-card" style="padding:16px;"><div class="stat-info"><div class="stat-value" id="s-applied" style="font-size:1.4rem;color:var(--blue);">0</div><div class="stat-label">Applied</div></div></div>
+        <div class="stat-card" style="padding:16px;"><div class="stat-info"><div class="stat-value" id="s-shortlisted" style="font-size:1.4rem;color:var(--orange);">0</div><div class="stat-label">Shortlisted</div></div></div>
+        <div class="stat-card" style="padding:16px;"><div class="stat-info"><div class="stat-value" id="s-selected" style="font-size:1.4rem;color:var(--green);">0</div><div class="stat-label">Selected</div></div></div>
+        <div class="stat-card" style="padding:16px;"><div class="stat-info"><div class="stat-value" id="s-rejected" style="font-size:1.4rem;color:var(--red);">0</div><div class="stat-label">Rejected</div></div></div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div id="apps-table">
+          <div class="empty-state" style="padding:60px;"><div class="empty-state-icon">⏳</div><h3>Loading applications...</h3></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+let allApps = [];
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  initUpgrades('admin');
+  loadApps();
+}
+
+async function loadApps() {
+  Skeleton.show('apps-table', 'tableRows', 6);
+  try {
+    const res = await API.get('/admin/applications');
+    allApps = res.applications || [];
+  } catch (e) {
+    allApps = [];
+    showToast('Could not load applications.', 'error');
+  }
+  updateStats();
+  renderApps(allApps);
+}
+
+function updateStats() {
+  // Each application is counted in every stage it has passed through (cumulative funnel)
+  const passedApplied     = allApps.length; // everyone has applied
+  const passedShortlisted = allApps.filter(a => ['shortlisted','interviewed','selected','rejected'].includes(a.status)).length;
+  const passedInterviewed = allApps.filter(a => ['interviewed','selected','rejected'].includes(a.status)).length;
+  const selected           = allApps.filter(a => a.status === 'selected').length;
+  const rejected           = allApps.filter(a => a.status === 'rejected').length;
+
+  document.getElementById('s-total').textContent       = allApps.length;
+  document.getElementById('s-applied').textContent     = passedApplied;
+  document.getElementById('s-shortlisted').textContent = passedShortlisted;
+  document.getElementById('s-selected').textContent    = selected;
+  document.getElementById('s-rejected').textContent    = rejected;
+  document.getElementById('apps-count-label').textContent = `${allApps.length} application${allApps.length !== 1 ? 's' : ''} across the platform`;
+}
+
+function filterByStatus(status) {
+  document.querySelectorAll('[id^="tab-"]').forEach(b => b.className = 'btn btn-ghost btn-sm');
+  document.getElementById(`tab-${status||'all'}`).className = 'btn btn-primary btn-sm';
+  applyFilters(status);
+}
+
+function filterApps() { applyFilters(); }
+
+function applyFilters(forceStatus) {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const activeTab = forceStatus !== undefined ? forceStatus : (document.querySelector('[id^="tab-"].btn-primary')?.id.replace('tab-','').replace('all','') || '');
+  const filtered = allApps.filter(a => {
+    const matchSearch = !search || a.student_name.toLowerCase().includes(search) || a.job_title.toLowerCase().includes(search) || a.company_name.toLowerCase().includes(search);
+    const matchStatus = !activeTab || a.status === activeTab;
+    return matchSearch && matchStatus;
+  });
+  renderApps(filtered);
+}
+
+function renderApps(apps) {
+  const el = document.getElementById('apps-table');
+  if (!apps.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:60px;"><div class="empty-state-icon">📋</div><h3>No applications found</h3><p>No students have applied yet, or none match your filters.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>Student</th><th>Job</th><th>Company</th><th>CGPA</th><th>Applied</th><th>Status</th></tr></thead>
+    <tbody>${apps.map(a => `<tr>
+      <td class="td-name"><div class="avatar" style="width:30px;height:30px;font-size:0.7rem;">${a.student_name.charAt(0)}</div>
+        <div><div>${a.student_name}</div><div class="text-xs text-muted">${a.student_email}</div></div></td>
+      <td class="text-sm">${a.job_title}</td>
+      <td class="text-sm text-muted">${a.company_name}</td>
+      <td><strong>${a.cgpa||'—'}</strong></td>
+      <td class="text-sm text-muted">${timeAgo(a.applied_at)}</td>
+      <td>${statusBadge(a.status)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function getExportData() { return allApps.map(a => ({ Student:a.student_name, Email:a.student_email, Job:a.job_title, Company:a.company_name, CGPA:a.cgpa||'', Status:a.status, Applied:a.applied_at })); }
+</script>
+</body>
+</html>

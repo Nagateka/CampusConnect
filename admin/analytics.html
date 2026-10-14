@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — CampusConnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html" class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html"  class="nav-item active"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Analytics & Reports</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search...">
+      </div>
+      <div class="topbar-actions">
+        <!-- injected by upgrades.js -->
+        <button class="btn btn-primary btn-sm" onclick="Printer.print('Placement Analytics Report')">🖨️ Print Report</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Print header (visible only when printing) -->
+      <div class="print-header">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+          <div style="width:40px;height:40px;background:#2563EB;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">🎓</div>
+          <div><h1 style="margin:0;">CampusHire</h1><p style="margin:0;color:#666;font-size:0.8rem;">Campus Recruitment Platform</p></div>
+        </div>
+        <div style="text-align:right;"><strong>Placement Analytics Report</strong><br><span style="font-size:0.8rem;color:#666;" id="print-date"></span></div>
+      </div>
+
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>Placement Analytics</h1>
+            <p>Real-time insights into campus recruitment performance</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select class="form-input form-select btn-sm" id="period-select" onchange="loadCharts()" style="width:140px;">
+              <option value="6">Last 6 months</option>
+              <option value="12">Last 12 months</option>
+              <option value="3">Last 3 months</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getExportData(), 'placement-report')">⬇ CSV</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI STATS -->
+      <div class="stats-grid" id="kpi-stats" style="margin-bottom:28px;">
+        <div class="stat-card"><div class="stat-icon blue">🎓</div><div class="stat-info"><div class="stat-value" id="kpi-students">—</div><div class="stat-label">Total Students</div><div class="stat-change up" id="kpi-students-change">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-value" id="kpi-placed">—</div><div class="stat-label">Students Placed</div><div class="stat-change up" id="kpi-rate">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">📋</div><div class="stat-info"><div class="stat-value" id="kpi-apps">—</div><div class="stat-label">Applications</div><div class="stat-change up" id="kpi-apps-change">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">🏢</div><div class="stat-info"><div class="stat-value" id="kpi-companies">—</div><div class="stat-label">Active Companies</div></div></div>
+      </div>
+
+      <!-- ROW 1: Applications over time + Status breakdown -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px;">
+        <div class="chart-wrap">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Applications Over Time</div>
+              <div class="chart-subtitle">Monthly application volume</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="chart-applications" style="width:100%;"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2563EB;"></div>Applications</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#10B981;"></div>Placements</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Application Status</div>
+              <div class="chart-subtitle">Current breakdown</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="chart-status" style="width:100%;"></canvas>
+          </div>
+          <div class="chart-legend" id="status-legend"></div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Top companies + Branch distribution -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+        <div class="chart-wrap">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Top Hiring Companies</div>
+              <div class="chart-subtitle">By number of placements</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="chart-companies" style="width:100%;"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Placements by Branch</div>
+              <div class="chart-subtitle">Which departments get hired most</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="chart-branches" style="width:100%;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Detailed placement table -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Placement Summary Table</h3>
+          <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getExportData(), 'placements')">⬇ Export</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Industry</th>
+              <th>Jobs Posted</th>
+              <th>Applicants</th>
+              <th>Shortlisted</th>
+              <th>Placed</th>
+              <th>Success Rate</th>
+            </tr>
+          </thead>
+          <tbody id="placement-table-body">
+            <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--gray-400);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+  initUpgrades('admin');
+  loadCharts();
+}
+
+async function loadCharts() {
+  // Load KPIs
+  try {
+    const res = await API.get('/admin/stats');
+    document.getElementById('kpi-students').textContent  = res.students || 142;
+    document.getElementById('kpi-placed').textContent    = res.placed   || 89;
+    document.getElementById('kpi-apps').textContent      = res.apps     || 324;
+    document.getElementById('kpi-companies').textContent = res.companies || 28;
+    document.getElementById('kpi-students-change').textContent = `↑ ${res.newToday || 5} new this week`;
+    document.getElementById('kpi-rate').textContent      = `↑ ${res.placementRate || 62}% placement rate`;
+    document.getElementById('kpi-apps-change').textContent = `↑ +18% vs last month`;
+  } catch (e) {
+    document.getElementById('kpi-students').textContent  = 142;
+    document.getElementById('kpi-placed').textContent    = 89;
+    document.getElementById('kpi-apps').textContent      = 324;
+    document.getElementById('kpi-companies').textContent = 28;
+    document.getElementById('kpi-students-change').textContent = '↑ 5 new this week';
+    document.getElementById('kpi-rate').textContent      = '↑ 62% placement rate';
+    document.getElementById('kpi-apps-change').textContent = '↑ +18% vs last month';
+  }
+
+  // Render charts after a tick (so canvas has layout)
+  setTimeout(renderCharts, 50);
+}
+
+function renderCharts() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date().getMonth();
+  const period = parseInt(document.getElementById('period-select').value);
+  const labels = Array.from({length: period}, (_, i) => months[(now - period + 1 + i + 12) % 12]);
+
+  // Applications over time (line)
+  Charts.line('chart-applications', labels, [
+    { data: [12,18,25,32,28,40,35,45,52,48,60,55].slice(-period), color:'#2563EB' },
+    { data: [3, 5, 8, 10, 9, 14, 12, 16, 18, 17, 22, 20].slice(-period), color:'#10B981' },
+  ], { height: 200 });
+
+  // Status donut
+  Charts.donut('chart-status', ['Applied','Shortlisted','Interviewed','Selected','Rejected'],
+    [145, 68, 42, 89, 36], { height: 180 });
+  document.getElementById('status-legend').innerHTML = [
+    {label:'Applied',color:'#2563EB',val:145},
+    {label:'Shortlisted',color:'#10B981',val:68},
+    {label:'Selected',color:'#F59E0B',val:89},
+    {label:'Rejected',color:'#EF4444',val:36},
+  ].map(l => `<div class="legend-item"><div class="legend-dot" style="background:${l.color};"></div>${l.label} (${l.val})</div>`).join('');
+
+  // Top companies bar
+  Charts.bar('chart-companies',
+    ['MTN Rw.','BK','Irembo','RwandAir','BRD','Ericsson'],
+    [22, 18, 15, 12, 9, 7],
+    { height: 200 });
+
+  // Branch distribution bar
+  Charts.bar('chart-branches',
+    ['CS','IT','Math','Business','Eng.','Other'],
+    [35, 28, 18, 22, 15, 8],
+    { height: 200, singleColor: true });
+
+  // Table
+  renderPlacementTable();
+}
+
+function renderPlacementTable() {
+  const data = [
+    { company:'MTN Rwanda', industry:'Telecom', jobs:4, applicants:67, shortlisted:22, placed:22, rate:'33%' },
+    { company:'Bank of Kigali', industry:'Finance', jobs:3, applicants:54, shortlisted:18, placed:18, rate:'33%' },
+    { company:'Irembo', industry:'Technology', jobs:5, applicants:48, shortlisted:15, placed:15, rate:'31%' },
+    { company:'RwandAir', industry:'Aviation', jobs:2, applicants:38, shortlisted:12, placed:12, rate:'32%' },
+    { company:'BRD Rwanda', industry:'Finance', jobs:2, applicants:30, shortlisted:9, placed:9, rate:'30%' },
+    { company:'Ericsson Rwanda', industry:'Technology', jobs:3, applicants:22, shortlisted:7, placed:7, rate:'32%' },
+  ];
+  document.getElementById('placement-table-body').innerHTML = data.map(r => `
+    <tr>
+      <td class="td-name"><div class="company-logo" style="width:32px;height:32px;font-size:0.75rem;">${r.company.charAt(0)}</div>${r.company}</td>
+      <td><span class="badge badge-gray">${r.industry}</span></td>
+      <td>${r.jobs}</td>
+      <td>${r.applicants}</td>
+      <td>${r.shortlisted}</td>
+      <td><strong style="color:var(--green);">${r.placed}</strong></td>
+      <td><span class="badge badge-blue">${r.rate}</span></td>
+    </tr>`).join('');
+  window._exportData = data;
+}
+
+function getExportData() { return window._exportData || []; }
+
+// Redraw charts on resize
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer);
+  window._resizeTimer = setTimeout(renderCharts, 200);
+});
+</script>
+</body>
+</html>

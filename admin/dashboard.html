@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html" class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html" class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html" class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html" class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Admin Dashboard</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search users, jobs...">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+        <div class="avatar" style="background:#EF4444;width:36px;height:36px;font-size:0.875rem;" id="topbar-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Platform Overview</h1>
+        <p>Real-time stats for the CampusConnect recruitment platform</p>
+      </div>
+
+      <!-- MAIN STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">🎓</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-students">0</div>
+            <div class="stat-label">Registered Students</div>
+            <div class="stat-change up" id="stat-students-new">↑ Loading...</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">🏢</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-companies">0</div>
+            <div class="stat-label">Active Companies</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">💼</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-jobs">0</div>
+            <div class="stat-label">Jobs Posted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">🏆</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-placed">0</div>
+            <div class="stat-label">Students Placed</div>
+            <div class="stat-change up" id="stat-rate">↑ 0% rate</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+        <!-- RECENT REGISTRATIONS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Recent Registrations</h3>
+            <span class="badge badge-green" id="today-badge">Today: 0</span>
+          </div>
+          <div id="recent-users">
+            <div class="empty-state" style="padding:30px;"><div class="empty-state-icon">👤</div><h3>Loading...</h3></div>
+          </div>
+        </div>
+
+        <!-- RECENT APPLICATIONS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Latest Applications</h3>
+            <a href="#" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+          <div id="recent-apps">
+            <div class="empty-state" style="padding:30px;"><div class="empty-state-icon">📋</div><h3>Loading...</h3></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL COMPANIES TABLE -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Companies Overview</h3>
+          <a href="companies.html" class="btn btn-ghost btn-sm">Manage all</a>
+        </div>
+        <div id="companies-table">
+          <div class="empty-state" style="padding:30px;"><div class="empty-state-icon">🏢</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('admin');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const [stats, users, apps, companies] = await Promise.all([
+      API.get('/admin/stats'),
+      API.get('/admin/recent-users'),
+      API.get('/admin/recent-applications'),
+      API.get('/admin/companies')
+    ]);
+    renderStats(stats);
+    renderUsers(users.users || []);
+    renderApps(apps.applications || []);
+    renderCompanies(companies.companies || []);
+  } catch (e) {
+    renderStats({ students:142, companies:28, jobs:67, placed:89, newToday:5, placementRate:62 });
+    renderUsers(getDemoUsers());
+    renderApps(getDemoApps());
+    renderCompanies(getDemoCompanies());
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('stat-students').textContent = s.students || 0;
+  document.getElementById('stat-companies').textContent = s.companies || 0;
+  document.getElementById('stat-jobs').textContent = s.jobs || 0;
+  document.getElementById('stat-placed').textContent = s.placed || 0;
+  document.getElementById('stat-students-new').textContent = `↑ ${s.newToday || 0} new today`;
+  document.getElementById('stat-rate').textContent = `↑ ${s.placementRate || 0}% placement rate`;
+  document.getElementById('today-badge').textContent = `Today: ${s.newToday || 0}`;
+}
+
+function renderUsers(users) {
+  const el = document.getElementById('recent-users');
+  if (!users.length) return;
+  el.innerHTML = `<table><thead><tr><th>Name</th><th>Role</th><th>Joined</th></tr></thead><tbody>
+    ${users.map(u => `<tr>
+      <td class="td-name"><div class="avatar" style="width:30px;height:30px;font-size:0.7rem;${u.role==='company'?'background:var(--orange)':''}">${u.name.charAt(0)}</div>${u.name}</td>
+      <td><span class="badge ${u.role==='student'?'badge-blue':'badge-orange'}">${u.role}</span></td>
+      <td class="text-sm text-muted">${timeAgo(u.created_at)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderApps(apps) {
+  const el = document.getElementById('recent-apps');
+  if (!apps.length) return;
+  el.innerHTML = `<table><thead><tr><th>Student</th><th>Job</th><th>Status</th></tr></thead><tbody>
+    ${apps.map(a => `<tr>
+      <td style="font-weight:600;">${a.student_name}</td>
+      <td class="text-sm text-muted">${a.job_title}</td>
+      <td>${statusBadge(a.status)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderCompanies(companies) {
+  const el = document.getElementById('companies-table');
+  if (!companies.length) return;
+  el.innerHTML = `<table><thead><tr><th>Company</th><th>Industry</th><th>Jobs</th><th>Applicants</th><th>Hired</th><th>Status</th></tr></thead><tbody>
+    ${companies.map(c => `<tr>
+      <td class="td-name"><div class="company-logo" style="width:32px;height:32px;font-size:0.75rem;">${c.name.charAt(0)}</div>${c.name}</td>
+      <td class="text-sm text-muted">${c.industry||'—'}</td>
+      <td><strong>${c.job_count||0}</strong></td>
+      <td>${c.applicant_count||0}</td>
+      <td><span style="color:var(--green);font-weight:700;">${c.hired_count||0}</span></td>
+      <td><span class="badge badge-green">Active</span></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function getDemoUsers() {
+  return [
+    { name:'Alice Mukamana', role:'student', created_at: new Date(Date.now()-3600000).toISOString() },
+    { name:'MTN Rwanda', role:'company', created_at: new Date(Date.now()-7200000).toISOString() },
+    { name:'Bob Nzeyimana', role:'student', created_at: new Date(Date.now()-86400000).toISOString() },
+    { name:'Bank of Kigali', role:'company', created_at: new Date(Date.now()-2*86400000).toISOString() },
+  ];
+}
+function getDemoApps() {
+  return [
+    { student_name:'Alice Mukamana', job_title:'Software Engineer', status:'shortlisted' },
+    { student_name:'Bob Nzeyimana', job_title:'Data Analyst', status:'applied' },
+    { student_name:'Claire Uwase', job_title:'IT Intern', status:'selected' },
+  ];
+}
+function getDemoCompanies() {
+  return [
+    { name:'MTN Rwanda', industry:'Telecommunications', job_count:4, applicant_count:34, hired_count:5 },
+    { name:'Bank of Kigali', industry:'Finance', job_count:2, applicant_count:18, hired_count:2 },
+    { name:'Irembo', industry:'Technology', job_count:3, applicant_count:22, hired_count:3 },
+  ];
+}
+</script>
+</body>
+</html>

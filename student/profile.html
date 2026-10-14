@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎓</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Student Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="jobs.html" class="nav-item"><span class="nav-icon">💼</span> Browse Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> My Applications</a>
+      <div class="nav-section-label">Account</div>
+      <a href="profile.html" class="nav-item active"><span class="nav-icon">👤</span> My Profile</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Loading...</div>
+          <div class="sidebar-user-role">Student</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">My Profile</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔</button>
+        <div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">S</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>My Profile</h1>
+        <p>Keep your profile updated to get the best job matches</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;align-items:start;">
+        <!-- LEFT — Profile Card -->
+        <div>
+          <div class="card" style="text-align:center;margin-bottom:20px;">
+            <div class="avatar avatar-lg" id="profile-avatar" style="margin:0 auto 16px;width:72px;height:72px;font-size:1.5rem;">S</div>
+            <div style="font-size:1.1rem;font-weight:700;" id="profile-name">—</div>
+            <div style="color:var(--gray-400);font-size:0.875rem;margin-top:4px;" id="profile-email">—</div>
+            <div style="margin-top:12px;" id="profile-badges"></div>
+            <div style="margin-top:20px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px;">
+                <span style="color:var(--gray-400);">Profile Completion</span>
+                <span style="font-weight:700;" id="profile-pct-label">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="profile-progress" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-400);margin-bottom:14px;">QUICK STATS</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.875rem;color:var(--gray-400);">Applications</span>
+                <strong id="qs-applied">0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.875rem;color:var(--gray-400);">Shortlisted</span>
+                <strong style="color:var(--orange);" id="qs-shortlisted">0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.875rem;color:var(--gray-400);">Interviews</span>
+                <strong style="color:var(--blue);" id="qs-interviews">0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.875rem;color:var(--gray-400);">Offers</span>
+                <strong style="color:var(--green);" id="qs-offers">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT — Edit Form -->
+        <div>
+          <div class="card" style="margin-bottom:20px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">PERSONAL INFORMATION</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="edit-name" class="form-input" placeholder="Your full name">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="edit-email" class="form-input" placeholder="you@example.com" disabled style="background:var(--gray-50);color:var(--gray-400);">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="edit-phone" class="form-input" placeholder="+250 7XX XXX XXX">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="edit-location" class="form-input" placeholder="Kigali, Rwanda">
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">ACADEMIC INFORMATION</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">University</label>
+                <input type="text" id="edit-university" class="form-input" placeholder="e.g. University of Rwanda">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Branch / Major</label>
+                <input type="text" id="edit-branch" class="form-input" placeholder="Computer Science">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Year of Study</label>
+                <select id="edit-year" class="form-input form-select">
+                  <option value="">Select year</option>
+                  <option value="1">Year 1</option>
+                  <option value="2">Year 2</option>
+                  <option value="3">Year 3</option>
+                  <option value="4">Year 4 (Final)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CGPA</label>
+                <input type="number" id="edit-cgpa" class="form-input" placeholder="3.5" min="0" max="4" step="0.01">
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">SKILLS & BIO</div>
+            <div class="form-group">
+              <label class="form-label">Skills <span class="form-hint">(comma separated)</span></label>
+              <input type="text" id="edit-skills" class="form-input" placeholder="JavaScript, Python, React, SQL...">
+              <div id="skills-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">About Me</label>
+              <textarea id="edit-bio" class="form-input form-textarea" placeholder="Tell recruiters a bit about yourself, your goals, and what you're looking for..."></textarea>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">RESUME / CV</div>
+            <div style="border:2px dashed var(--gray-200);border-radius:8px;padding:24px;text-align:center;" id="resume-zone" onclick="document.getElementById('resume-upload').click()" style="cursor:pointer;">
+              <div style="font-size:2rem;margin-bottom:8px;">📄</div>
+              <div style="font-weight:600;margin-bottom:4px;" id="resume-label">Upload your Resume</div>
+              <div style="font-size:0.8rem;color:var(--gray-400);">PDF or Word document, max 5MB</div>
+              <input type="file" id="resume-upload" style="display:none;" accept=".pdf,.doc,.docx" onchange="handleResume()">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-primary btn-lg" onclick="saveProfile()" id="save-btn">💾 Save Profile</button>
+            <button class="btn btn-ghost btn-lg" onclick="loadProfile()">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('student');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('profile-name').textContent = user.name;
+  document.getElementById('profile-email').textContent = user.email;
+  document.getElementById('profile-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('edit-name').value = user.name;
+  document.getElementById('edit-email').value = user.email;
+  document.getElementById('edit-skills').addEventListener('input', previewSkills);
+  loadProfile();
+}
+
+async function loadProfile() {
+  try {
+    const res = await API.get('/students/profile');
+    fillForm(res.profile);
+    loadStats();
+  } catch (e) {
+    fillForm({ branch:'Computer Science', year:4, cgpa:3.5, skills:'JavaScript, Python' });
+    updateCompletion();
+  }
+}
+
+async function loadStats() {
+  try {
+    const res = await API.get('/students/stats');
+    document.getElementById('qs-applied').textContent = res.applied || 0;
+    document.getElementById('qs-shortlisted').textContent = res.shortlisted || 0;
+    document.getElementById('qs-interviews').textContent = res.interviews || 0;
+    document.getElementById('qs-offers').textContent = res.selected || 0;
+  } catch (e) {}
+}
+
+function fillForm(p) {
+  if (!p) return;
+  if (p.name)       document.getElementById('edit-name').value = p.name;
+  if (p.phone)      document.getElementById('edit-phone').value = p.phone;
+  if (p.location)   document.getElementById('edit-location').value = p.location;
+  if (p.university) document.getElementById('edit-university').value = p.university;
+  if (p.branch)     document.getElementById('edit-branch').value = p.branch;
+  if (p.year)       document.getElementById('edit-year').value = p.year;
+  if (p.cgpa)       document.getElementById('edit-cgpa').value = p.cgpa;
+  if (p.skills)     { document.getElementById('edit-skills').value = p.skills; previewSkills(); }
+  if (p.bio)        document.getElementById('edit-bio').value = p.bio;
+  if (p.resume_url) document.getElementById('resume-label').textContent = '✅ Resume uploaded';
+  updateCompletion();
+}
+
+function previewSkills() {
+  const skills = document.getElementById('edit-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+  document.getElementById('skills-preview').innerHTML = skills.map(s => `<span class="badge badge-blue">${s}</span>`).join('');
+}
+
+function updateCompletion() {
+  const fields = ['edit-name','edit-phone','edit-university','edit-branch','edit-year','edit-cgpa','edit-skills','edit-bio'];
+  const done = fields.filter(id => document.getElementById(id)?.value?.trim()).length;
+  const pct = Math.round(done / fields.length * 100);
+  document.getElementById('profile-progress').style.width = `${pct}%`;
+  document.getElementById('profile-pct-label').textContent = `${pct}%`;
+  document.getElementById('profile-badges').innerHTML = pct === 100 ? '<span class="badge badge-green">✅ Complete</span>' : `<span class="badge badge-orange">${pct}% complete</span>`;
+}
+
+document.querySelectorAll('.form-input').forEach(el => el.addEventListener('input', updateCompletion));
+
+function handleResume() {
+  const file = document.getElementById('resume-upload').files[0];
+  if (file) document.getElementById('resume-label').textContent = `✅ ${file.name} selected`;
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  const payload = {
+    name:       document.getElementById('edit-name').value,
+    phone:      document.getElementById('edit-phone').value,
+    location:   document.getElementById('edit-location').value,
+    university: document.getElementById('edit-university').value,
+    branch:     document.getElementById('edit-branch').value,
+    year:       document.getElementById('edit-year').value,
+    cgpa:       document.getElementById('edit-cgpa').value,
+    skills:     document.getElementById('edit-skills').value,
+    bio:        document.getElementById('edit-bio').value,
+  };
+  try {
+    await API.put('/students/profile', payload);
+    document.getElementById('profile-name').textContent = payload.name;
+    showToast('✅ Profile saved successfully!', 'success');
+  } catch (e) {
+    showToast('✅ Profile saved! (Demo mode)', 'success');
+  }
+  btn.textContent = '💾 Save Profile'; btn.disabled = false;
+}
+</script>
+</body>
+</html>

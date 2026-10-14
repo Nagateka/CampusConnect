@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-page">
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <a href="index.html" style="display:flex; align-items:center; gap:10px; color:white; font-weight:800; font-size:1.1rem; margin-bottom:48px;">
+        <div style="width:36px;height:36px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;">🎓</div>
+        CampusConnect(UTB)
+      </a>
+      <h2>Welcome back to your recruitment journey</h2>
+      <p>Sign in to access your dashboard, track applications, and stay connected with opportunities.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📧</div>
+          <div class="auth-feature-text">Instant email notifications for every update</div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📊</div>
+          <div class="auth-feature-text">Real-time application status tracking</div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔒</div>
+          <div class="auth-feature-text">Secure and private — your data is safe</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1>Sign In</h1>
+      <p>Don't have an account? <a href="register.html" style="color:var(--blue);font-weight:600;">Create one free</a></p>
+
+      <div id="error-msg" style="display:none; background:#FEF2F2; border:1px solid #FECACA; color:var(--red); padding:12px 16px; border-radius:8px; font-size:0.875rem; margin-bottom:20px;"></div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="email" class="form-input" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;justify-content:space-between;">
+          Password
+          <a href="#" style="color:var(--blue); font-weight:500; font-size:0.8rem;">Forgot password?</a>
+        </label>
+        <div style="position:relative;">
+          <input type="password" id="password" class="form-input" placeholder="••••••••" style="width:100%; padding-right:44px;">
+          <button onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);font-size:1rem;cursor:pointer;" id="pwd-toggle">👁️</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleLogin()" id="login-btn">
+        Sign In
+      </button>
+
+      <div class="auth-switch" style="margin-top:24px;">
+        New to CampusConnect(UTB)? <a href="register.html">Create an account</a>
+      </div>
+
+      <!-- Demo accounts -->
+      <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--gray-200);">
+        <p style="font-size:0.75rem; color:var(--gray-400); text-align:center; margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Quick Demo Access</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="demoLogin('student')" style="font-size:0.75rem;">🎓 Student Demo</button>
+          <button class="btn btn-ghost btn-sm" onclick="demoLogin('company')" style="font-size:0.75rem;">🏢 Company Demo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+async function handleLogin() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+  const errMsg = document.getElementById('error-msg');
+
+  if (!email || !password) {
+    showError('Please fill in all fields.');
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+  errMsg.style.display = 'none';
+
+  try {
+    const res = await API.post('/auth/login', { email, password });
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('user', JSON.stringify(res.user));
+    showToast('Welcome back! Redirecting...', 'success');
+    setTimeout(() => redirectByRole(res.user.role), 1000);
+  } catch (err) {
+    showError(err.message || 'Invalid email or password.');
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function togglePwd() {
+  const input = document.getElementById('password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function demoLogin(role) {
+  const demos = {
+    admin:   { email: 'admin@campusconnect(UTB).com', password: 'admin123' },
+    student: { email: 'student@demo.com', password: 'student123' },
+    company: { email: 'company@demo.com', password: 'company123' }
+  };
+  document.getElementById('email').value = demos[role].email;
+  document.getElementById('password').value = demos[role].password;
+  handleLogin();
+}
+
+function redirectByRole(role) {
+  const routes = {
+    admin:   'admin/dashboard.html',
+    student: 'student/dashboard.html',
+    company: 'company/dashboard.html'
+  };
+  window.location.href = routes[role] || 'index.html';
+}
+
+// Enter key support
+document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>

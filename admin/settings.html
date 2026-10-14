@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — campusconnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html"         class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html"      class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html"    class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item active"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Settings</div>
+      <div class="topbar-actions"></div>
+    </div>
+
+    <div class="page-content" style="max-width:700px;">
+      <div class="page-header">
+        <h1>Account Settings</h1>
+        <p>Manage your admin account and platform preferences</p>
+      </div>
+
+      <div id="error-msg" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:12px 16px;border-radius:8px;font-size:0.875rem;margin-bottom:20px;"></div>
+
+      <!-- PROFILE -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">PROFILE</div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="set-name" class="form-input" placeholder="Admin name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="set-email" class="form-input" disabled style="background:var(--gray-50);color:var(--gray-400);">
+          <div class="form-hint">Email cannot be changed for security reasons</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()" id="save-profile-btn">💾 Save Profile</button>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">CHANGE PASSWORD</div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" id="current-pwd" class="form-input" placeholder="Enter current password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" id="new-pwd" class="form-input" placeholder="At least 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" id="confirm-pwd" class="form-input" placeholder="Repeat new password">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()" id="save-pwd-btn">🔒 Update Password</button>
+      </div>
+
+      <!-- PREFERENCES -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">PREFERENCES</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Email Notifications</div>
+            <div class="text-sm text-muted">Receive admin alerts for new jobs and registrations</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;">
+            <input type="checkbox" checked style="opacity:0;width:0;height:0;">
+            <span style="position:absolute;inset:0;background:var(--blue);border-radius:99px;cursor:pointer;"></span>
+            <span style="position:absolute;top:3px;left:23px;width:18px;height:18px;background:white;border-radius:50%;"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="card" style="border-color:#FECACA;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:16px;">DANGER ZONE</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Sign out everywhere</div>
+            <div class="text-sm text-muted">End all active admin sessions</div>
+          </div>
+          <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('set-name').value = user.name;
+  document.getElementById('set-email').value = user.email;
+  initUpgrades('admin');
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-profile-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    const name = document.getElementById('set-name').value;
+    await API.put('/admin/settings', { name });
+    const u = JSON.parse(localStorage.getItem('user'));
+    u.name = name; localStorage.setItem('user', JSON.stringify(u));
+    document.getElementById('sidebar-user-name').textContent = name;
+    showToast('✅ Profile updated successfully!', 'success');
+  } catch (e) {
+    showToast(e.message || 'Failed to update profile.', 'error');
+  }
+  btn.textContent = '💾 Save Profile'; btn.disabled = false;
+}
+
+async function changePassword() {
+  const current = document.getElementById('current-pwd').value;
+  const next    = document.getElementById('new-pwd').value;
+  const confirm = document.getElementById('confirm-pwd').value;
+  const errEl   = document.getElementById('error-msg');
+  errEl.style.display = 'none';
+
+  if (!current || !next) { errEl.textContent = 'Please fill in all password fields.'; errEl.style.display='block'; return; }
+  if (next.length < 8)   { errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display='block'; return; }
+  if (next !== confirm)  { errEl.textContent = 'New passwords do not match.'; errEl.style.display='block'; return; }
+
+  const btn = document.getElementById('save-pwd-btn');
+  btn.textContent = 'Updating...'; btn.disabled = true;
+  try {
+    await API.put('/admin/settings', { currentPassword: current, newPassword: next });
+    showToast('🔒 Password updated successfully!', 'success');
+    document.getElementById('current-pwd').value = '';
+    document.getElementById('new-pwd').value = '';
+    document.getElementById('confirm-pwd').value = '';
+  } catch (e) {
+    errEl.textContent = e.message || 'Failed to update password.';
+    errEl.style.display = 'block';
+  }
+  btn.textContent = '🔒 Update Password'; btn.disabled = false;
+}
+</script>
+</body>
+</html>

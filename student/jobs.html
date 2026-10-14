@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Jobs — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎓</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Student Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="jobs.html" class="nav-item active"><span class="nav-icon">💼</span> Browse Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> My Applications</a>
+      <div class="nav-section-label">Account</div>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Loading...</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Student</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Browse Jobs</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+        <div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">S</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>Job Openings</h1>
+            <p>Find your perfect opportunity — <span id="job-count">0</span> jobs available</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="card" style="margin-bottom:24px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Search</label>
+            <input type="text" id="filter-search" class="form-input" placeholder="Job title, skill..." oninput="filterJobs()">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Industry</label>
+            <select id="filter-industry" class="form-input form-select" onchange="filterJobs()">
+              <option value="">All Industries</option>
+              <option>Technology</option>
+              <option>Finance & Banking</option>
+              <option>Telecommunications</option>
+              <option>Healthcare</option>
+              <option>Education</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Job Type</label>
+            <select id="filter-type" class="form-input form-select" onchange="filterJobs()">
+              <option value="">All Types</option>
+              <option>Full-time</option>
+              <option>Internship</option>
+              <option>Part-time</option>
+              <option>Contract</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Sort By</label>
+            <select id="filter-sort" class="form-input form-select" onchange="filterJobs()">
+              <option value="newest">Newest First</option>
+              <option value="deadline">Deadline Soon</option>
+              <option value="salary">Highest Salary</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost" onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <!-- JOB LISTINGS -->
+      <div class="jobs-grid" id="jobs-grid">
+        <div class="empty-state" style="grid-column:1/-1;padding:60px;">
+          <div class="empty-state-icon">⏳</div>
+          <h3>Loading jobs...</h3>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- APPLY MODAL -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-job-title">Apply for Job</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:20px;" id="modal-job-info"></div>
+      <div class="form-group">
+        <label class="form-label">Cover Letter <span style="color:var(--gray-400)">(optional)</span></label>
+        <textarea id="cover-letter" class="form-input form-textarea" placeholder="Tell this company why you're the perfect fit..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Resume / CV</label>
+        <div style="border:2px dashed var(--gray-200);border-radius:8px;padding:24px;text-align:center;cursor:pointer;" onclick="document.getElementById('resume-file').click()">
+          <div style="font-size:1.5rem;margin-bottom:8px;">📎</div>
+          <div style="font-size:0.875rem;color:var(--gray-400);" id="file-label">Click to upload your resume (PDF, DOC)</div>
+          <input type="file" id="resume-file" style="display:none;" accept=".pdf,.doc,.docx" onchange="updateFileLabel()">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="submitApplication()" id="apply-btn">
+        Submit Application
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('student');
+let allJobs = [];
+let selectedJobId = null;
+
+if (user) {
+  initSidebar();
+  const ta = document.getElementById('topbar-avatar');
+  if (ta) ta.textContent = user.name.charAt(0).toUpperCase();
+  const sa = document.getElementById('sidebar-avatar');
+  if (sa) sa.textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  loadJobs();
+}
+
+async function loadJobs() {
+  try {
+    const res = await API.get('/jobs?status=open');
+    allJobs = res.jobs || [];
+    renderJobs(allJobs);
+  } catch (e) {
+    allJobs = getDemoJobs();
+    renderJobs(allJobs);
+  }
+}
+
+function renderJobs(jobs) {
+  document.getElementById('job-count').textContent = jobs.length;
+  const grid = document.getElementById('jobs-grid');
+  if (!jobs.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px;"><div class="empty-state-icon">💼</div><h3>No jobs match your filters</h3><p>Try clearing the filters or check back later</p></div>`;
+    return;
+  }
+  grid.innerHTML = jobs.map(j => `
+    <div class="job-card">
+      <div class="job-card-header">
+        <div class="company-logo">${(j.company_name||j.company||'?').charAt(0)}</div>
+        <div>
+          <div class="job-card-title">${j.title}</div>
+          <div class="job-card-company">${j.company_name||j.company} · ${j.location||'Kigali, Rwanda'}</div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-400);line-height:1.5;">${(j.description||'').slice(0,120)}...</p>
+      <div class="job-card-tags">
+        <span class="badge badge-blue">${j.type||'Full-time'}</span>
+        <span class="badge badge-gray">${j.industry||'Technology'}</span>
+        ${j.requirements ? `<span class="badge badge-gray">${j.requirements.split(',')[0]}</span>` : ''}
+      </div>
+      <div class="job-card-footer">
+        <div>
+          <div class="job-salary">${j.salary||'Competitive'}</div>
+          <div class="job-deadline">Deadline: ${formatDate(j.deadline)}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openApply(${j.id}, '${j.title}', '${j.company_name||j.company}', '${j.salary||'Competitive'}')">
+          Apply Now
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function filterJobs() {
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  const industry = document.getElementById('filter-industry').value;
+  const type = document.getElementById('filter-type').value;
+  let filtered = allJobs.filter(j => {
+    const matchSearch = !search || j.title.toLowerCase().includes(search) || (j.description||'').toLowerCase().includes(search);
+    const matchIndustry = !industry || j.industry === industry;
+    const matchType = !type || j.type === type;
+    return matchSearch && matchIndustry && matchType;
+  });
+  renderJobs(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('filter-search').value = '';
+  document.getElementById('filter-industry').value = '';
+  document.getElementById('filter-type').value = '';
+  renderJobs(allJobs);
+}
+
+function openApply(jobId, title, company, salary) {
+  selectedJobId = jobId;
+  document.getElementById('modal-job-title').textContent = `Apply — ${title}`;
+  document.getElementById('modal-job-info').innerHTML = `
+    <div style="font-weight:700;">${title}</div>
+    <div style="color:var(--gray-400);font-size:0.875rem;">${company}</div>
+    <div style="color:var(--blue);font-weight:600;margin-top:4px;">${salary}</div>`;
+  document.getElementById('applyModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('applyModal').classList.remove('open'); }
+
+function updateFileLabel() {
+  const file = document.getElementById('resume-file').files[0];
+  document.getElementById('file-label').textContent = file ? `✅ ${file.name}` : 'Click to upload your resume (PDF, DOC)';
+}
+
+async function submitApplication() {
+  const btn = document.getElementById('apply-btn');
+  const coverLetter = document.getElementById('cover-letter').value;
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  try {
+    await API.post('/applications', { job_id: selectedJobId, cover_letter: coverLetter });
+    closeModal();
+    showToast('🎉 Application submitted! Check your email for confirmation.', 'success');
+    setTimeout(loadJobs, 500);
+  } catch (e) {
+    showToast(e.message || 'Failed to apply. Please try again.', 'error');
+  }
+  btn.textContent = 'Submit Application';
+  btn.disabled = false;
+}
+
+function getDemoJobs() {
+  return [
+    { id:1, title:'Software Engineer', company_name:'MTN Rwanda', company:'MTN Rwanda', industry:'Telecommunications', type:'Full-time', salary:'RWF 800K/month', description:'We are looking for a passionate software engineer to join our digital team. You will build scalable systems that power millions of customers.', requirements:'JavaScript, Node.js, React', deadline:'2025-08-30', location:'Kigali' },
+    { id:2, title:'Data Analyst', company_name:'Bank of Kigali', company:'Bank of Kigali', industry:'Finance & Banking', type:'Full-time', salary:'RWF 650K/month', description:'Analyze financial data and generate insights to support business decisions. Work with large datasets and create dashboards.', requirements:'Python, SQL, Excel', deadline:'2025-08-25', location:'Kigali' },
+    { id:3, title:'IT Intern', company_name:'RwandAir', company:'RwandAir', industry:'Technology', type:'Internship', salary:'RWF 200K/month', description:'3-month internship program for final year students. Work on real IT infrastructure projects.', requirements:'Networking, Windows Server', deadline:'2025-08-15', location:'Kigali Airport' },
+    { id:4, title:'UX/UI Designer', company_name:'Irembo', company:'Irembo', industry:'Technology', type:'Full-time', salary:'RWF 700K/month', description:'Design beautiful digital experiences for government e-services used by millions of Rwandans.', requirements:'Figma, Adobe XD, Research', deadline:'2025-09-01', location:'Kigali' },
+  ];
+}
+</script>
+</body>
+</html>

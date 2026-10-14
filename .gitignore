@@ -1,0 +1,22 @@
+
+# Environment variables and secrets
+.env
+**/.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local databases and database backups
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs and temporary files
+*.log
+npm-debug.log*

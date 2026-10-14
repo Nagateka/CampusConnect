@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Companies — CampusConnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item active"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="analytics.html"  class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <a href="#"               class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <div class="nav-section-label">System</div>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Companies</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="Search companies..." oninput="filterCompanies()">
+      </div>
+      <div class="topbar-actions">
+        <div class="avatar" style="background:#EF4444;width:36px;height:36px;font-size:0.875rem;" id="topbar-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>All Companies</h1>
+            <p id="companies-count-label">Loading...</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getExportData(),'companies')">⬇ Export CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="Printer.print('Companies Report')">🖨️ Print</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-icon orange">🏢</div><div class="stat-info"><div class="stat-value" id="s-total">0</div><div class="stat-label">Total Companies</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">💼</div><div class="stat-info"><div class="stat-value" id="s-jobs">0</div><div class="stat-label">Jobs Posted</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-value" id="s-hired">0</div><div class="stat-label">Students Hired</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div class="stat-info"><div class="stat-value" id="s-apps">0</div><div class="stat-label">Total Applications</div></div></div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="card" style="margin-bottom:20px;padding:16px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Industry</label>
+            <select id="filter-industry" class="form-input form-select" onchange="filterCompanies()" style="width:180px;">
+              <option value="">All Industries</option>
+              <option>Technology</option>
+              <option>Finance & Banking</option>
+              <option>Telecommunications</option>
+              <option>Healthcare</option>
+              <option>Education</option>
+              <option>Government</option>
+              <option>NGO / Non-Profit</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Status</label>
+            <select id="filter-status" class="form-input form-select" onchange="filterCompanies()" style="width:150px;">
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <!-- VIEW TOGGLE -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="btn btn-primary btn-sm" onclick="setView('grid',this)" id="view-grid-btn">⊞ Grid</button>
+        <button class="btn btn-ghost btn-sm" onclick="setView('table',this)" id="view-table-btn">☰ Table</button>
+      </div>
+
+      <!-- GRID VIEW -->
+      <div id="grid-view" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;"></div>
+
+      <!-- TABLE VIEW -->
+      <div class="table-wrap" id="table-view" style="display:none;">
+        <div id="table-body"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- COMPANY DETAIL MODAL -->
+<div class="modal-overlay" id="companyModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <h3 id="modal-company-name">Company Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+let allCompanies = [];
+let currentView = 'grid';
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  initUpgrades('admin');
+  loadCompanies();
+}
+
+async function loadCompanies() {
+  Skeleton.show('grid-view', 'jobCards', 6);
+  try {
+    const res = await API.get('/admin/companies');
+    allCompanies = res.companies || [];
+  } catch (e) {
+    allCompanies = getDemoCompanies();
+  }
+  updateStats();
+  renderView();
+}
+
+function updateStats() {
+  const total = allCompanies.length;
+  const jobs  = allCompanies.reduce((a,c) => a + (c.job_count||0), 0);
+  const hired = allCompanies.reduce((a,c) => a + (c.hired_count||0), 0);
+  const apps  = allCompanies.reduce((a,c) => a + (c.applicant_count||0), 0);
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-jobs').textContent  = jobs;
+  document.getElementById('s-hired').textContent = hired;
+  document.getElementById('s-apps').textContent  = apps;
+  document.getElementById('companies-count-label').textContent = `${total} registered company${total !== 1 ? 'ies' : 'y'}`;
+}
+
+function filterCompanies() {
+  const search   = document.getElementById('search-input').value.toLowerCase();
+  const industry = document.getElementById('filter-industry').value;
+  const status   = document.getElementById('filter-status').value;
+  const filtered = allCompanies.filter(c => {
+    const matchSearch   = !search   || c.name.toLowerCase().includes(search);
+    const matchIndustry = !industry || c.industry === industry;
+    const matchStatus   = !status   || (status === 'active' ? c.job_count > 0 : c.job_count === 0);
+    return matchSearch && matchIndustry && matchStatus;
+  });
+  renderView(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-industry').value = '';
+  document.getElementById('filter-status').value = '';
+  renderView();
+}
+
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('[id^="view-"][id$="-btn"]').forEach(b => b.className = 'btn btn-ghost btn-sm');
+  btn.className = 'btn btn-primary btn-sm';
+  renderView();
+}
+
+function renderView(companies = allCompanies) {
+  if (currentView === 'grid') {
+    document.getElementById('grid-view').style.display  = 'grid';
+    document.getElementById('table-view').style.display = 'none';
+    renderGrid(companies);
+  } else {
+    document.getElementById('grid-view').style.display  = 'none';
+    document.getElementById('table-view').style.display = 'block';
+    renderTable(companies);
+  }
+}
+
+function renderGrid(companies) {
+  const el = document.getElementById('grid-view');
+  if (!companies.length) { el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px;"><div class="empty-state-icon">🏢</div><h3>No companies found</h3></div>`; return; }
+  el.innerHTML = companies.map(c => `
+    <div class="card card-hover" onclick="viewCompany(${JSON.stringify(c).replace(/"/g,'&quot;')})" style="cursor:pointer;">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+        <div class="company-logo" style="width:52px;height:52px;font-size:1.2rem;flex-shrink:0;">${c.name.charAt(0)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:1rem;margin-bottom:2px;">${c.name}</div>
+          <span class="badge badge-gray" style="font-size:0.7rem;">${c.industry||'—'}</span>
+        </div>
+        <span class="badge ${c.job_count > 0 ? 'badge-green' : 'badge-gray'}">${c.job_count > 0 ? 'Active' : 'Inactive'}</span>
+      </div>
+      ${c.description ? `<p style="font-size:0.825rem;color:var(--gray-400);line-height:1.5;margin-bottom:14px;">${c.description.slice(0,100)}...</p>` : ''}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:14px;border-top:1px solid var(--gray-100);">
+        <div style="text-align:center;">
+          <div style="font-weight:800;font-size:1.1rem;color:var(--blue);">${c.job_count||0}</div>
+          <div style="font-size:0.7rem;color:var(--gray-400);">Jobs</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-weight:800;font-size:1.1rem;">${c.applicant_count||0}</div>
+          <div style="font-size:0.7rem;color:var(--gray-400);">Applicants</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-weight:800;font-size:1.1rem;color:var(--green);">${c.hired_count||0}</div>
+          <div style="font-size:0.7rem;color:var(--gray-400);">Hired</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderTable(companies) {
+  const el = document.getElementById('table-body');
+  if (!companies.length) { el.innerHTML = `<div class="empty-state" style="padding:40px;"><div class="empty-state-icon">🏢</div><h3>No companies found</h3></div>`; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Company</th><th>Industry</th><th>Contact</th><th>Jobs</th><th>Applicants</th><th>Hired</th><th>Status</th><th></th></tr></thead>
+    <tbody>${companies.map(c => `<tr>
+      <td class="td-name">
+        <div class="company-logo" style="width:36px;height:36px;font-size:0.85rem;">${c.name.charAt(0)}</div>
+        <div><div style="font-weight:600;">${c.name}</div><div class="text-xs text-muted">${formatDate(c.created_at)}</div></div>
+      </td>
+      <td><span class="badge badge-gray">${c.industry||'—'}</span></td>
+      <td class="text-sm text-muted">${c.contact_email||c.email||'—'}</td>
+      <td><strong>${c.job_count||0}</strong></td>
+      <td>${c.applicant_count||0}</td>
+      <td><strong style="color:var(--green);">${c.hired_count||0}</strong></td>
+      <td><span class="badge ${c.job_count>0?'badge-green':'badge-gray'}">${c.job_count>0?'Active':'Inactive'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="viewCompany(${JSON.stringify(c).replace(/"/g,'&quot;')})">View</button>
+          <button class="btn btn-sm" style="background:#FEF2F2;color:var(--red);" onclick="suspendCompany(${c.id},'${c.name}')">Suspend</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function viewCompany(c) {
+  document.getElementById('modal-company-name').textContent = c.name;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div class="company-logo" style="width:60px;height:60px;font-size:1.4rem;">${c.name.charAt(0)}</div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;">${c.name}</div>
+        <span class="badge badge-gray">${c.industry||'—'}</span>
+        <span class="badge ${c.job_count>0?'badge-green':'badge-gray'}" style="margin-left:4px;">${c.job_count>0?'Active':'Inactive'}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+      <div style="background:var(--gray-50);border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--blue);">${c.job_count||0}</div>
+        <div class="text-xs text-muted">Jobs Posted</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;">${c.applicant_count||0}</div>
+        <div class="text-xs text-muted">Applicants</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--green);">${c.hired_count||0}</div>
+        <div class="text-xs text-muted">Students Hired</div>
+      </div>
+    </div>
+    ${c.description ? `<div style="margin-bottom:16px;"><div class="text-xs text-muted" style="margin-bottom:6px;">ABOUT</div><p style="font-size:0.875rem;line-height:1.6;">${c.description}</p></div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">CONTACT EMAIL</div><div style="font-weight:600;">${c.contact_email||c.email||'—'}</div></div>
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">REGISTERED</div><div style="font-weight:600;">${formatDate(c.created_at)}</div></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" onclick="closeModal()">Close</button>
+      <button class="btn btn-danger" onclick="suspendCompany(${c.id},'${c.name}');closeModal()">Suspend Company</button>
+    </div>`;
+  document.getElementById('companyModal').classList.add('open');
+}
+
+function suspendCompany(id, name) {
+  if (!confirm(`Suspend ${name}?\n\nThey will no longer be able to post jobs or access the platform.`)) return;
+  showToast(`⚠️ ${name} has been suspended.`, 'warning');
+}
+
+function closeModal() { document.getElementById('companyModal').classList.remove('open'); }
+function getExportData() { return allCompanies.map(c => ({ Name:c.name, Industry:c.industry||'', Jobs:c.job_count||0, Applicants:c.applicant_count||0, Hired:c.hired_count||0 })); }
+
+function getDemoCompanies() {
+  return [
+    { id:1, name:'MTN Rwanda', industry:'Telecommunications', description:'Leading telecommunications company in Rwanda providing mobile, internet and financial services to millions.', job_count:4, applicant_count:67, hired_count:22, contact_email:'hr@mtn.rw', created_at: new Date(Date.now()-90*86400000).toISOString() },
+    { id:2, name:'Bank of Kigali', industry:'Finance & Banking', description:'Rwanda\'s premier bank offering personal, business, and corporate banking solutions.', job_count:3, applicant_count:54, hired_count:18, contact_email:'careers@bk.rw', created_at: new Date(Date.now()-80*86400000).toISOString() },
+    { id:3, name:'Irembo', industry:'Technology', description:'Rwanda\'s leading e-government platform connecting citizens to over 100 government services online.', job_count:5, applicant_count:48, hired_count:15, contact_email:'jobs@irembo.com', created_at: new Date(Date.now()-60*86400000).toISOString() },
+    { id:4, name:'RwandAir', industry:'Aviation', description:'National flag carrier of Rwanda connecting the country to destinations across Africa and beyond.', job_count:2, applicant_count:38, hired_count:12, contact_email:'hr@rwandair.com', created_at: new Date(Date.now()-50*86400000).toISOString() },
+    { id:5, name:'BRD Rwanda', industry:'Finance & Banking', description:'Development Bank of Rwanda financing growth in priority sectors of the economy.', job_count:2, applicant_count:30, hired_count:9, contact_email:'hr@brd.rw', created_at: new Date(Date.now()-40*86400000).toISOString() },
+    { id:6, name:'Ericsson Rwanda', industry:'Technology', description:'Global technology company providing ICT solutions to telecom operators across Rwanda and East Africa.', job_count:3, applicant_count:22, hired_count:7, contact_email:'careers@ericsson.com', created_at: new Date(Date.now()-30*86400000).toISOString() },
+    { id:7, name:'CHUK Hospital', industry:'Healthcare', description:'Centre Hospitalier Universitaire de Kigali — Rwanda\'s leading referral hospital.', job_count:1, applicant_count:15, hired_count:4, contact_email:'hr@chuk.rw', created_at: new Date(Date.now()-20*86400000).toISOString() },
+    { id:8, name:'GIZ Rwanda', industry:'NGO / Non-Profit', description:'German Development Cooperation supporting Rwanda\'s development in multiple sectors.', job_count:0, applicant_count:0, hired_count:0, contact_email:'info@giz.de', created_at: new Date(Date.now()-10*86400000).toISOString() },
+  ];
+}
+</script>
+</body>
+</html>

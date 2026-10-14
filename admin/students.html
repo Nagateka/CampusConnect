@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students — campusconnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html" class="nav-item active"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html" class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html" class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Students</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="Search by name or email..." oninput="filterStudents()">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+        <div class="avatar" style="background:#EF4444;width:36px;height:36px;font-size:0.875rem;" id="topbar-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>All Students</h1>
+            <p id="student-count-label">Loading...</p>
+          </div>
+          <button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div class="card" style="padding:16px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;" id="s-total">0</div>
+          <div class="text-sm text-muted">Total Students</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--green);" id="s-placed">0</div>
+          <div class="text-sm text-muted">Placed</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--blue);" id="s-applied">0</div>
+          <div class="text-sm text-muted">Applied to Jobs</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--orange);" id="s-rate">0%</div>
+          <div class="text-sm text-muted">Placement Rate</div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="card" style="margin-bottom:20px;padding:16px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Branch</label>
+            <select id="filter-branch" class="form-input form-select" onchange="filterStudents()" style="width:180px;">
+              <option value="">All Branches</option>
+              <option>Computer Science</option>
+              <option>Information Technology</option>
+              <option>Mathematics</option>
+              <option>Business</option>
+              <option>Engineering</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Year</label>
+            <select id="filter-year" class="form-input form-select" onchange="filterStudents()" style="width:130px;">
+              <option value="">All Years</option>
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Status</label>
+            <select id="filter-placed" class="form-input form-select" onchange="filterStudents()" style="width:150px;">
+              <option value="">All Students</option>
+              <option value="placed">Placed ✅</option>
+              <option value="not-placed">Not Placed</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div id="students-table">
+          <div class="empty-state" style="padding:60px;"><div class="empty-state-icon">⏳</div><h3>Loading students...</h3></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- STUDENT DETAIL MODAL -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <h3 id="modal-name">Student Profile</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('admin');
+let allStudents = [];
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  loadStudents();
+}
+
+async function loadStudents() {
+  try {
+    const res = await API.get('/admin/students');
+    allStudents = res.students || [];
+    renderStudents(allStudents);
+    updateStats(allStudents);
+  } catch (e) {
+    allStudents = getDemoStudents();
+    renderStudents(allStudents);
+    updateStats(allStudents);
+  }
+}
+
+function updateStats(students) {
+  const placed = students.filter(s => s.is_placed).length;
+  const applied = students.filter(s => s.application_count > 0).length;
+  document.getElementById('s-total').textContent = students.length;
+  document.getElementById('s-placed').textContent = placed;
+  document.getElementById('s-applied').textContent = applied;
+  document.getElementById('s-rate').textContent = students.length ? `${Math.round(placed/students.length*100)}%` : '0%';
+  document.getElementById('student-count-label').textContent = `${students.length} registered student${students.length !== 1 ? 's' : ''}`;
+}
+
+function renderStudents(students) {
+  const el = document.getElementById('students-table');
+  if (!students.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:60px;"><div class="empty-state-icon">🎓</div><h3>No students found</h3></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>Student</th><th>University</th><th>Branch</th><th>Year</th><th>CGPA</th><th>Applications</th><th>Status</th><th></th></tr></thead>
+    <tbody>${students.map(s => `<tr>
+      <td class="td-name">
+        <div class="avatar" style="width:34px;height:34px;font-size:0.8rem;">${s.name.charAt(0)}</div>
+        <div>
+          <div>${s.name}</div>
+          <div class="text-xs text-muted">${s.email}</div>
+        </div>
+      </td>
+      <td class="text-sm">${s.university || '—'}</td>
+      <td class="text-sm">${s.branch || '—'}</td>
+      <td><span class="badge badge-gray">Year ${s.year || '?'}</span></td>
+      <td><strong style="color:${s.cgpa >= 3.5 ? 'var(--green)' : 'var(--gray-800)'}">${s.cgpa || '—'}</strong></td>
+      <td style="text-align:center;"><strong>${s.application_count || 0}</strong></td>
+      <td>${s.is_placed ? '<span class="badge badge-green">✅ Placed</span>' : '<span class="badge badge-gray">Searching</span>'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="viewStudent(${JSON.stringify(s).replace(/"/g,'&quot;')})">View</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function filterStudents() {
+  const search  = document.getElementById('search-input').value.toLowerCase();
+  const branch  = document.getElementById('filter-branch').value;
+  const year    = document.getElementById('filter-year').value;
+  const placed  = document.getElementById('filter-placed').value;
+  const filtered = allStudents.filter(s => {
+    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search);
+    const matchBranch = !branch || s.branch === branch;
+    const matchYear   = !year   || String(s.year) === year;
+    const matchPlaced = !placed || (placed === 'placed' ? s.is_placed : !s.is_placed);
+    return matchSearch && matchBranch && matchYear && matchPlaced;
+  });
+  renderStudents(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-branch').value = '';
+  document.getElementById('filter-year').value = '';
+  document.getElementById('filter-placed').value = '';
+  renderStudents(allStudents);
+}
+
+function viewStudent(s) {
+  document.getElementById('modal-name').textContent = s.name;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div class="avatar avatar-lg">${s.name.charAt(0)}</div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;">${s.name}</div>
+        <div style="color:var(--gray-400);font-size:0.875rem;">${s.email}</div>
+        <div style="margin-top:6px;">${s.is_placed ? '<span class="badge badge-green">✅ Placed</span>' : '<span class="badge badge-gray">Searching</span>'}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">UNIVERSITY</div>
+        <div style="font-weight:600;">${s.university || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">BRANCH</div>
+        <div style="font-weight:600;">${s.branch || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">YEAR</div>
+        <div style="font-weight:600;">Year ${s.year || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">CGPA</div>
+        <div style="font-weight:700;font-size:1.1rem;color:var(--green);">${s.cgpa || '—'}</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">APPLICATIONS</div>
+        <div style="font-weight:600;">${s.application_count || 0} submitted</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;">
+        <div class="text-xs text-muted" style="margin-bottom:4px;">JOINED</div>
+        <div style="font-weight:600;">${formatDate(s.created_at)}</div>
+      </div>
+    </div>
+    ${s.skills ? `<div style="margin-top:16px;"><div class="text-xs text-muted" style="margin-bottom:8px;">SKILLS</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${s.skills.split(',').map(sk => `<span class="badge badge-blue">${sk.trim()}</span>`).join('')}</div></div>` : ''}
+  `;
+  document.getElementById('studentModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('studentModal').classList.remove('open'); }
+
+function exportCSV() {
+  const rows = [['Name','Email','University','Branch','Year','CGPA','Applications','Status']];
+  allStudents.forEach(s => rows.push([s.name, s.email, s.university||'', s.branch||'', s.year||'', s.cgpa||'', s.application_count||0, s.is_placed?'Placed':'Searching']));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'students.csv'; a.click();
+  showToast('✅ CSV exported!', 'success');
+}
+
+function getDemoStudents() {
+  return [
+    { id:1, name:'Alice Mukamana', email:'alice@ur.ac.rw', university:'University of Rwanda', branch:'Computer Science', year:4, cgpa:3.8, application_count:4, is_placed:true, skills:'JavaScript, Python, React', created_at: new Date(Date.now()-30*86400000).toISOString() },
+    { id:2, name:'Bob Nzeyimana', email:'bob@auca.ac.rw', university:'AUCA', branch:'Information Technology', year:3, cgpa:3.5, application_count:2, is_placed:false, skills:'Java, SQL', created_at: new Date(Date.now()-20*86400000).toISOString() },
+    { id:3, name:'Claire Uwase', email:'claire@ur.ac.rw', university:'University of Rwanda', branch:'Mathematics', year:4, cgpa:3.9, application_count:3, is_placed:false, skills:'Python, R, Excel', created_at: new Date(Date.now()-15*86400000).toISOString() },
+    { id:4, name:'David Habimana', email:'david@auca.ac.rw', university:'AUCA', branch:'Computer Science', year:2, cgpa:3.2, application_count:1, is_placed:false, skills:'HTML, CSS, JavaScript', created_at: new Date(Date.now()-10*86400000).toISOString() },
+    { id:5, name:'Eve Ingabire', email:'eve@ur.ac.rw', university:'University of Rwanda', branch:'Business IT', year:4, cgpa:3.7, application_count:5, is_placed:true, skills:'Management, Excel, PowerBI', created_at: new Date(Date.now()-25*86400000).toISOString() },
+  ];
+}
+</script>
+</body>
+</html>

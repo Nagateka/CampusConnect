@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interview Schedule — CampusHire</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+  <style>
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-header {
+      text-align: center; font-size: 0.75rem; font-weight: 700;
+      color: var(--gray-400); padding: 8px 0;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .cal-day {
+      min-height: 80px; border-radius: 8px;
+      border: 1px solid var(--gray-200); padding: 6px;
+      cursor: pointer; transition: all 0.15s; background: white;
+    }
+    [data-theme="dark"] .cal-day { background: #161B22; border-color: #21262D; }
+    .cal-day:hover { border-color: var(--blue); background: #EFF6FF; }
+    [data-theme="dark"] .cal-day:hover { background: rgba(37,99,235,0.08); }
+    .cal-day.today { border-color: var(--blue); background: #EFF6FF; }
+    [data-theme="dark"] .cal-day.today { background: rgba(37,99,235,0.1); }
+    .cal-day.other-month { opacity: 0.35; }
+    .cal-day.has-interview { border-color: var(--green); }
+    .cal-num { font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+    .cal-today-num {
+      width: 24px; height: 24px; background: var(--blue);
+      border-radius: 50%; color: white; display: flex;
+      align-items: center; justify-content: center; font-size: 0.75rem;
+    }
+    .cal-event {
+      font-size: 0.65rem; padding: 2px 5px; border-radius: 4px;
+      background: #EFF6FF; color: var(--blue); font-weight: 600;
+      margin-bottom: 2px; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-event.green { background: #ECFDF5; color: var(--green); }
+    .timeline-item {
+      display: flex; gap: 16px; padding: 16px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    [data-theme="dark"] .timeline-item { border-color: #21262D; }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-time {
+      width: 80px; text-align: right; flex-shrink: 0;
+      font-size: 0.875rem; font-weight: 700; color: var(--blue);
+      padding-top: 2px;
+    }
+    .timeline-dot-col {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+    .timeline-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--blue); flex-shrink: 0; margin-top: 4px;
+    }
+    .timeline-line {
+      width: 2px; flex: 1; background: var(--gray-200); margin-top: 4px;
+    }
+    [data-theme="dark"] .timeline-line { background: #21262D; }
+    .timeline-content {
+      flex: 1; background: white; border: 1px solid var(--gray-200);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    [data-theme="dark"] .timeline-content { background: #161B22; border-color: #21262D; }
+    .view-toggle { display: flex; gap: 4px; }
+    .view-btn {
+      padding: 6px 14px; border-radius: 7px; font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid var(--gray-200);
+      background: white; color: var(--gray-400); transition: all 0.15s;
+    }
+    [data-theme="dark"] .view-btn { background: #161B22; border-color: #21262D; color: #8B949E; }
+    .view-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">CampusHire <span>Company Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="post-job.html"  class="nav-item"><span class="nav-icon">➕</span> Post a Job</a>
+      <a href="applicants.html" class="nav-item"><span class="nav-icon">👥</span> Applicants</a>
+      <a href="schedule.html"  class="nav-item active"><span class="nav-icon">📅</span> Interviews</a>
+      <div class="nav-section-label">Account</div>
+      <a href="#" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">C</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Company</div>
+          <div class="sidebar-user-role">Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Interview Schedule</div>
+      <div class="topbar-search"><span>🔍</span><input type="text" placeholder="Search candidates..."></div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openScheduleModal()">+ Schedule Interview</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>Interview Schedule</h1>
+            <p>Manage all your upcoming and past interviews in one place</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="view-toggle">
+              <button class="view-btn active" onclick="switchView('calendar',this)">📅 Calendar</button>
+              <button class="view-btn" onclick="switchView('timeline',this)">📋 Timeline</button>
+              <button class="view-btn" onclick="switchView('list',this)">☰ List</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+        <div class="stat-card"><div class="stat-icon blue">📅</div><div class="stat-info"><div class="stat-value" id="stat-upcoming">0</div><div class="stat-label">Upcoming</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⏳</div><div class="stat-info"><div class="stat-value" id="stat-today">0</div><div class="stat-label">Today</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-value" id="stat-completed">0</div><div class="stat-label">Completed</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">🏆</div><div class="stat-info"><div class="stat-value" id="stat-selected">0</div><div class="stat-label">Selected</div></div></div>
+      </div>
+
+      <!-- CALENDAR VIEW -->
+      <div id="view-calendar">
+        <div class="card" style="margin-bottom:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)">← Prev</button>
+            <h3 id="cal-month-label" style="font-size:1.1rem;font-weight:700;"></h3>
+            <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)">Next →</button>
+          </div>
+          <div class="calendar-grid" id="calendar-grid">
+            <div class="cal-header">Sun</div><div class="cal-header">Mon</div>
+            <div class="cal-header">Tue</div><div class="cal-header">Wed</div>
+            <div class="cal-header">Thu</div><div class="cal-header">Fri</div>
+            <div class="cal-header">Sat</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE VIEW -->
+      <div id="view-timeline" style="display:none;">
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:20px;font-size:1rem;">📅 Upcoming Interviews</div>
+          <div id="timeline-list"></div>
+        </div>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="view-list" style="display:none;">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>All Interviews</h3>
+            <div style="display:flex;gap:8px;">
+              <select class="form-input form-select btn-sm" id="list-filter" onchange="renderListView()" style="width:160px;">
+                <option value="">All Statuses</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="Printer.print('Interview Schedule')">🖨️ Print</button>
+            </div>
+          </div>
+          <div id="list-table"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3>Schedule New Interview</h3>
+      <button class="modal-close" onclick="closeModal('scheduleModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Candidate</label>
+        <select id="sch-candidate" class="form-input form-select">
+          <option value="">Select shortlisted candidate...</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Date <span style="color:var(--red)">*</span></label>
+          <input type="date" id="sch-date" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time <span style="color:var(--red)">*</span></label>
+          <input type="time" id="sch-time" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration</label>
+        <select id="sch-duration" class="form-input form-select">
+          <option value="30">30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60" selected>1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Interview Mode</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div class="role-option selected" data-mode="In-person" onclick="selectMode(this,'In-person')">
+            <div class="role-option-icon">🏢</div>
+            <div class="role-option-label">In-person</div>
+          </div>
+          <div class="role-option" data-mode="Video Call" onclick="selectMode(this,'Video Call')">
+            <div class="role-option-icon">💻</div>
+            <div class="role-option-label">Video Call</div>
+          </div>
+          <div class="role-option" data-mode="Phone" onclick="selectMode(this,'Phone')">
+            <div class="role-option-icon">📞</div>
+            <div class="role-option-label">Phone</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location / Link</label>
+        <input type="text" id="sch-location" class="form-input" placeholder="Room 3B or zoom.us/j/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes for Candidate</label>
+        <textarea id="sch-notes" class="form-input form-textarea" style="min-height:80px;" placeholder="What to prepare, bring, or expect..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="scheduleInterview()" id="sch-btn">
+        📅 Schedule & Notify Candidate
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DAY DETAIL MODAL -->
+<div class="modal-overlay" id="dayModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h3 id="day-modal-title">Interviews</h3>
+      <button class="modal-close" onclick="closeModal('dayModal')">✕</button>
+    </div>
+    <div class="modal-body" id="day-modal-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('company');
+let interviews = [];
+let currentMonth = new Date();
+let selectedMode = 'In-person';
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  initUpgrades('company');
+  loadInterviews();
+  loadShortlistedCandidates();
+  // Set min date
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('sch-date').min = tomorrow.toISOString().split('T')[0];
+}
+
+async function loadInterviews() {
+  try {
+    const res = await API.get('/interviews');
+    interviews = res.interviews || [];
+  } catch (e) {
+    interviews = getDemoInterviews();
+  }
+  updateStats();
+  renderCalendar();
+  renderTimeline();
+  renderListView();
+}
+
+async function loadShortlistedCandidates() {
+  try {
+    const res = await API.get('/companies/applicants?status=shortlisted');
+    const sel = document.getElementById('sch-candidate');
+    (res.applications || getDemoCandidates()).forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = `${a.student_name} — ${a.job_title}`;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    getDemoCandidates().forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id; opt.textContent = `${a.student_name} — ${a.job_title}`;
+      document.getElementById('sch-candidate').appendChild(opt);
+    });
+  }
+}
+
+function updateStats() {
+  const now = new Date();
+  const today = now.toDateString();
+  document.getElementById('stat-upcoming').textContent  = interviews.filter(i => new Date(i.scheduled_at) > now).length;
+  document.getElementById('stat-today').textContent     = interviews.filter(i => new Date(i.scheduled_at).toDateString() === today).length;
+  document.getElementById('stat-completed').textContent = interviews.filter(i => new Date(i.scheduled_at) < now).length;
+  document.getElementById('stat-selected').textContent  = interviews.filter(i => i.result === 'selected').length;
+}
+
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${months[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+
+  const grid = document.getElementById('calendar-grid');
+  // Remove existing day cells (keep headers)
+  Array.from(grid.children).forEach((el, i) => { if (i >= 7) el.remove(); });
+
+  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 0).getDate();
+  const daysInPrev  = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0).getDate();
+  const today = new Date().toDateString();
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other-month';
+    d.innerHTML = `<div class="cal-num">${daysInPrev - i}</div>`;
+    grid.appendChild(d);
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+    const isToday = date.toDateString() === today;
+    const dayInterviews = interviews.filter(i => new Date(i.scheduled_at).toDateString() === date.toDateString());
+
+    const cell = document.createElement('div');
+    cell.className = `cal-day ${isToday ? 'today' : ''} ${dayInterviews.length > 0 ? 'has-interview' : ''}`;
+    cell.innerHTML = `
+      <div class="cal-num">${isToday ? `<div class="cal-today-num">${d}</div>` : d}</div>
+      ${dayInterviews.slice(0,2).map(i => `<div class="cal-event">${i.student_name?.split(' ')[0] || 'Interview'}</div>`).join('')}
+      ${dayInterviews.length > 2 ? `<div class="cal-event green">+${dayInterviews.length-2} more</div>` : ''}`;
+
+    if (dayInterviews.length > 0) {
+      cell.onclick = () => showDayDetail(date, dayInterviews);
+    }
+    grid.appendChild(cell);
+  }
+
+  // Fill remaining
+  const totalCells = firstDay + daysInMonth;
+  const remaining  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other-month';
+    d.innerHTML = `<div class="cal-num">${i}</div>`;
+    grid.appendChild(d);
+  }
+}
+
+function changeMonth(dir) {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + dir, 1);
+  renderCalendar();
+}
+
+function showDayDetail(date, dayInterviews) {
+  document.getElementById('day-modal-title').textContent = `📅 ${date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}`;
+  document.getElementById('day-modal-body').innerHTML = dayInterviews.map(i => `
+    <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="width:60px;text-align:right;font-weight:700;color:var(--blue);font-size:0.875rem;padding-top:2px;">
+        ${new Date(i.scheduled_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
+      </div>
+      <div class="avatar" style="width:38px;height:38px;">${(i.student_name||'?').charAt(0)}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;">${i.student_name}</div>
+        <div style="font-size:0.8rem;color:var(--gray-400);">${i.job_title} · ${i.mode || 'In-person'}</div>
+        ${i.location ? `<div style="font-size:0.8rem;color:var(--blue);margin-top:2px;">📍 ${i.location}</div>` : ''}
+      </div>
+      ${statusBadge(i.result || 'upcoming')}
+    </div>`).join('');
+  document.getElementById('dayModal').classList.add('open');
+}
+
+function renderTimeline() {
+  const upcoming = interviews.filter(i => new Date(i.scheduled_at) >= new Date())
+    .sort((a,b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+  const el = document.getElementById('timeline-list');
+  if (!upcoming.length) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div><h3>No upcoming interviews</h3><p>Schedule interviews from the Applicants page</p></div>`; return; }
+  el.innerHTML = upcoming.map((i, idx) => `
+    <div class="timeline-item">
+      <div class="timeline-time">${new Date(i.scheduled_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}<div style="font-size:0.7rem;color:var(--gray-400);font-weight:400;">${formatDate(i.scheduled_at)}</div></div>
+      <div class="timeline-dot-col">
+        <div class="timeline-dot" style="background:${idx===0?'var(--blue)':'var(--gray-400)'}"></div>
+        ${idx < upcoming.length-1 ? '<div class="timeline-line"></div>' : ''}
+      </div>
+      <div class="timeline-content">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-weight:700;">${i.student_name}</div>
+          <span class="badge ${idx===0?'badge-blue':'badge-gray'}">${idx===0?'Next up':'Upcoming'}</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--gray-400);">💼 ${i.job_title}</div>
+        <div style="font-size:0.85rem;color:var(--gray-400);">${i.mode==='Video Call'?'💻':'i.mode==="Phone"?"📞":"🏢'} ${i.mode||'In-person'} ${i.location?'· '+i.location:''}</div>
+        ${i.notes?`<div style="font-size:0.8rem;background:var(--gray-50);border-radius:6px;padding:8px;margin-top:8px;">${i.notes}</div>`:''}
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="markResult(${i.id},'selected')">✅ Selected</button>
+          <button class="btn btn-ghost btn-sm" onclick="markResult(${i.id},'rejected')">✕ Rejected</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderListView() {
+  const filter = document.getElementById('list-filter')?.value;
+  const now = new Date();
+  let filtered = interviews;
+  if (filter === 'upcoming')  filtered = interviews.filter(i => new Date(i.scheduled_at) > now);
+  if (filter === 'completed') filtered = interviews.filter(i => new Date(i.scheduled_at) <= now);
+  const el = document.getElementById('list-table');
+  if (!filtered.length) { el.innerHTML = `<div class="empty-state" style="padding:40px;"><div class="empty-state-icon">📅</div><h3>No interviews found</h3></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Candidate</th><th>Job</th><th>Date & Time</th><th>Mode</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${filtered.map(i => {
+      const isPast = new Date(i.scheduled_at) < now;
+      return `<tr>
+        <td class="td-name"><div class="avatar" style="width:32px;height:32px;font-size:0.75rem;">${(i.student_name||'?').charAt(0)}</div>${i.student_name}</td>
+        <td class="text-sm">${i.job_title}</td>
+        <td><div style="font-weight:600;">${formatDate(i.scheduled_at)}</div><div class="text-xs text-muted">${new Date(i.scheduled_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></td>
+        <td><span class="badge badge-blue">${i.mode||'In-person'}</span></td>
+        <td>${isPast ? (i.result ? statusBadge(i.result) : '<span class="badge badge-gray">Pending result</span>') : '<span class="badge badge-green">Upcoming</span>'}</td>
+        <td><div style="display:flex;gap:6px;">${!i.result && isPast ? `
+          <button class="btn btn-sm" style="background:#ECFDF5;color:var(--green);" onclick="markResult(${i.id},'selected')">✅ Select</button>
+          <button class="btn btn-sm" style="background:#FEF2F2;color:var(--red);" onclick="markResult(${i.id},'rejected')">✕ Reject</button>` :
+          `<button class="btn btn-ghost btn-sm" onclick="showDayDetail(new Date('${i.scheduled_at}'),[${JSON.stringify(i)}])">View</button>`}
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function switchView(view, btn) {
+  ['calendar','timeline','list'].forEach(v => {
+    document.getElementById(`view-${v}`).style.display = v === view ? 'block' : 'none';
+  });
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function selectMode(el, mode) {
+  selectedMode = mode;
+  document.querySelectorAll('[data-mode]').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('sch-location').placeholder = mode === 'Video Call' ? 'zoom.us/j/...' : mode === 'Phone' ? 'Phone number' : 'Office Room 3B';
+}
+
+function openScheduleModal() { document.getElementById('scheduleModal').classList.add('open'); }
+function closeModal(id)      { document.getElementById(id).classList.remove('open'); }
+
+async function scheduleInterview() {
+  const date  = document.getElementById('sch-date').value;
+  const time  = document.getElementById('sch-time').value;
+  const btn   = document.getElementById('sch-btn');
+  if (!date || !time) { showToast('Please select date and time.', 'error'); return; }
+  btn.textContent = 'Scheduling...'; btn.disabled = true;
+  try {
+    await API.post('/interviews', {
+      application_id: document.getElementById('sch-candidate').value,
+      scheduled_at: `${date}T${time}`,
+      mode: selectedMode,
+      location: document.getElementById('sch-location').value,
+      notes: document.getElementById('sch-notes').value,
+      duration: document.getElementById('sch-duration').value
+    });
+    closeModal('scheduleModal');
+    showToast('📅 Interview scheduled! Candidate notified by email.', 'success');
+    loadInterviews();
+  } catch (e) {
+    closeModal('scheduleModal');
+    showToast('📅 Interview scheduled! (Demo mode)', 'success');
+    loadInterviews();
+  }
+  btn.textContent = '📅 Schedule & Notify Candidate'; btn.disabled = false;
+}
+
+async function markResult(id, result) {
+  try {
+    await API.put(`/interviews/${id}/result`, { result });
+  } catch (e) {
+    const i = interviews.find(i => i.id === id);
+    if (i) i.result = result;
+  }
+  showToast(`✅ Marked as ${result}. Student notified!`, 'success');
+  loadInterviews();
+}
+
+function getDemoInterviews() {
+  const now = new Date();
+  return [
+    { id:1, student_name:'Alice Mukamana', job_title:'Software Engineer', scheduled_at: new Date(now.getTime()+86400000).toISOString(), mode:'Video Call', location:'zoom.us/j/123456', notes:'Please prepare a coding challenge in JavaScript.', result:null },
+    { id:2, student_name:'Bob Nzeyimana',  job_title:'Software Engineer', scheduled_at: new Date(now.getTime()+2*86400000).toISOString(), mode:'In-person', location:'HQ Room 2A', result:null },
+    { id:3, student_name:'Claire Uwase',   job_title:'Data Analyst',      scheduled_at: new Date(now.getTime()-2*86400000).toISOString(), mode:'In-person', location:'HQ Room 1B', result:'selected' },
+    { id:4, student_name:'David Habimana', job_title:'IT Intern',         scheduled_at: new Date(now.getTime()-5*86400000).toISOString(), mode:'Phone', result:'rejected' },
+    { id:5, student_name:'Eve Ingabire',   job_title:'Software Engineer', scheduled_at: new Date(now.getFullYear(), now.getMonth(), 20, 10, 0).toISOString(), mode:'Video Call', location:'meet.google.com/xyz', result:null },
+  ];
+}
+function getDemoCandidates() {
+  return [
+    { id:1, student_name:'Alice Mukamana', job_title:'Software Engineer' },
+    { id:2, student_name:'Bob Nzeyimana',  job_title:'Software Engineer' },
+  ];
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;color:white;font-weight:800;font-size:1.1rem;margin-bottom:48px;">
+        <div style="width:36px;height:36px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;">🎓</div>
+        CampusConnect(UTB)
+      </a>
+      <h2>Join thousands already getting hired</h2>
+      <p>Create your account in 2 minutes and get instant access to hundreds of opportunities.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">⚡</div>
+          <div class="auth-feature-text">Instant welcome email after registration</div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎯</div>
+          <div class="auth-feature-text">Apply to jobs with a single click</div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📈</div>
+          <div class="auth-feature-text">Track every application in real-time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right" style="overflow-y:auto;">
+    <div class="auth-form-wrap">
+      <h1>Create Account</h1>
+      <p>Already have an account? <a href="login.html">Sign in here</a></p>
+
+      <div id="error-msg" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:12px 16px;border-radius:8px;font-size:0.875rem;margin-bottom:20px;"></div>
+
+      <!-- Role Selector -->
+      <div style="margin-bottom:20px;">
+        <label class="form-label" style="margin-bottom:10px;display:block;">I am a...</label>
+        <div class="role-selector" id="roleSelector">
+          <div class="role-option selected" data-role="student" onclick="selectRole('student')">
+            <div class="role-option-icon">🎓</div>
+            <div class="role-option-label">Student</div>
+          </div>
+          <div class="role-option" data-role="company" onclick="selectRole('company')">
+            <div class="role-option-icon">🏢</div>
+            <div class="role-option-label">Company</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" id="name-label">Full Name</label>
+        <input type="text" id="name" class="form-input" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="email" class="form-input" placeholder="you@example.com">
+      </div>
+
+      <!-- Student extra fields -->
+      <div id="student-fields">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">University</label>
+            <input type="text" id="university" class="form-input" placeholder="UR, AUCA...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch / Major</label>
+            <input type="text" id="branch" class="form-input" placeholder="Computer Science">
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Year of Study</label>
+            <select id="year" class="form-input form-select">
+              <option value="">Select year</option>
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4 (Final)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CGPA</label>
+            <input type="number" id="cgpa" class="form-input" placeholder="3.5" min="0" max="4" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Company extra fields -->
+      <div id="company-fields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input type="text" id="company-name" class="form-input" placeholder="Acme Corp Ltd">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Industry</label>
+          <select id="industry" class="form-input form-select">
+            <option value="">Select industry</option>
+            <option>Technology</option>
+            <option>Finance & Banking</option>
+            <option>Telecommunications</option>
+            <option>Healthcare</option>
+            <option>Education</option>
+            <option>Manufacturing</option>
+            <option>Government</option>
+            <option>NGO / Non-Profit</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="password" class="form-input" placeholder="At least 8 characters" style="width:100%;padding-right:44px;">
+          <button onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);font-size:1rem;cursor:pointer;">👁️</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" id="confirm-password" class="form-input" placeholder="Repeat your password">
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;">
+        <input type="checkbox" id="terms" style="margin-top:3px;accent-color:var(--blue);">
+        <label for="terms" style="font-size:0.85rem;color:var(--gray-600);">
+          I agree to the <a href="#" style="color:var(--blue)">Terms of Service</a> and <a href="#" style="color:var(--blue)">Privacy Policy</a>
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleRegister()" id="register-btn">
+        Create Account
+      </button>
+
+      <div class="auth-switch">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+let selectedRole = 'student';
+
+// Pre-select role from URL param
+const urlRole = new URLSearchParams(window.location.search).get('role');
+if (urlRole) selectRole(urlRole);
+
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+  document.getElementById('student-fields').style.display = role === 'student' ? 'block' : 'none';
+  document.getElementById('company-fields').style.display = role === 'company' ? 'block' : 'none';
+  document.getElementById('name-label').textContent = role === 'company' ? 'Contact Person Name' : 'Full Name';
+}
+
+function togglePwd() {
+  const input = document.getElementById('password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+async function handleRegister() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm-password').value;
+  const terms = document.getElementById('terms').checked;
+  const errMsg = document.getElementById('error-msg');
+  const btn = document.getElementById('register-btn');
+
+  errMsg.style.display = 'none';
+
+  if (!name || !email || !password) return showError('Please fill in all required fields.');
+  if (password.length < 8) return showError('Password must be at least 8 characters.');
+  if (password !== confirm) return showError('Passwords do not match.');
+  if (!terms) return showError('Please accept the Terms of Service.');
+
+  const payload = { name, email, password, role: selectedRole };
+
+  if (selectedRole === 'student') {
+    payload.university = document.getElementById('university').value;
+    payload.branch = document.getElementById('branch').value;
+    payload.year = document.getElementById('year').value;
+    payload.cgpa = document.getElementById('cgpa').value;
+  }
+  if (selectedRole === 'company') {
+    payload.companyName = document.getElementById('company-name').value;
+    payload.industry = document.getElementById('industry').value;
+    if (!payload.companyName) return showError('Please enter your company name.');
+  }
+
+  btn.textContent = 'Creating account...';
+  btn.disabled = true;
+
+  try {
+    const res = await API.post('/auth/register', payload);
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('user', JSON.stringify(res.user));
+    showToast('🎉 Account created! Check your email for a welcome message.', 'success');
+    setTimeout(() => {
+      const routes = { admin: '../admin/dashboard.html', student: '../student/dashboard.html', company: '../company/dashboard.html' };
+      window.location.href = routes[selectedRole];
+    }, 2000);
+  } catch (err) {
+    showError(err.message || 'Registration failed. Please try again.');
+    btn.textContent = 'Create Account';
+    btn.disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎓</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Student Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item active" id="nav-dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="jobs.html" class="nav-item" id="nav-jobs">
+        <span class="nav-icon">💼</span> Browse Jobs
+      </a>
+      <a href="applications.html" class="nav-item" id="nav-apps">
+        <span class="nav-icon">📋</span> My Applications
+      </a>
+      <div class="nav-section-label">Account</div>
+      <a href="profile.html" class="nav-item" id="nav-profile">
+        <span class="nav-icon">👤</span> My Profile
+      </a>
+      <a href="#" class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span> Sign Out
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Loading...</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Student</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search jobs...">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" title="Notifications">
+          🔔 <span class="notif-dot"></span>
+        </button>
+        <a href="profile.html"><div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">S</div></a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- HEADER -->
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1 id="welcome-msg">Good morning! 👋</h1>
+            <p>Here's what's happening with your job search today.</p>
+          </div>
+          <a href="jobs.html" class="btn btn-primary">Browse Jobs →</a>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-applied">0</div>
+            <div class="stat-label">Applications Sent</div>
+            <div class="stat-change up">↑ Active search</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">⭐</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-shortlisted">0</div>
+            <div class="stat-label">Shortlisted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-interviews">0</div>
+            <div class="stat-label">Interviews Scheduled</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">🏆</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-selected">0</div>
+            <div class="stat-label">Offers Received</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE COMPLETION -->
+      <div class="card" style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div class="heading-md">Complete Your Profile</div>
+            <div class="text-sm text-muted">A complete profile gets 3x more interview calls</div>
+          </div>
+          <span class="badge badge-orange" id="profile-pct">60% done</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="profile-bar" style="width:60%"></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;" id="profile-checklist"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <!-- RECENT APPLICATIONS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Recent Applications</h3>
+            <a href="applications.html" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+          <div id="recent-apps">
+            <div class="empty-state" style="padding:40px 20px;">
+              <div class="empty-state-icon">📭</div>
+              <h3>No applications yet</h3>
+              <p>Browse jobs and apply to get started</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECOMMENDED JOBS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Recommended Jobs</h3>
+            <a href="jobs.html" class="btn btn-ghost btn-sm">Browse all</a>
+          </div>
+          <div id="recommended-jobs" style="padding:8px;">
+            <div class="empty-state" style="padding:40px 20px;">
+              <div class="empty-state-icon">💼</div>
+              <h3>Loading jobs...</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('student');
+if (user) {
+  initSidebar('nav-dashboard');
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('welcome-msg').textContent = `${greeting}, ${user.name.split(' ')[0]}! 👋`;
+  const ta = document.getElementById('topbar-avatar');
+  if (ta) ta.textContent = user.name.charAt(0).toUpperCase();
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const [stats, apps, jobs] = await Promise.all([
+      API.get('/students/stats'),
+      API.get('/applications/mine?limit=4'),
+      API.get('/jobs?limit=4&status=open')
+    ]);
+    renderStats(stats);
+    renderApps(apps.applications || []);
+    renderJobs(jobs.jobs || []);
+    renderProfileChecklist(stats.profile || {});
+  } catch (e) {
+    // Show demo data if backend not ready
+    renderStats({ applied:3, shortlisted:1, interviews:1, selected:0 });
+    renderApps([]);
+    renderJobs([]);
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('stat-applied').textContent = s.applied || 0;
+  document.getElementById('stat-shortlisted').textContent = s.shortlisted || 0;
+  document.getElementById('stat-interviews').textContent = s.interviews || 0;
+  document.getElementById('stat-selected').textContent = s.selected || 0;
+}
+
+function renderApps(apps) {
+  const el = document.getElementById('recent-apps');
+  if (!apps.length) return;
+  el.innerHTML = `<table><thead><tr><th>Job</th><th>Company</th><th>Status</th></tr></thead><tbody>
+    ${apps.map(a => `<tr>
+      <td class="td-name">${a.job_title}</td>
+      <td class="text-muted text-sm">${a.company_name}</td>
+      <td>${statusBadge(a.status)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderJobs(jobs) {
+  const el = document.getElementById('recommended-jobs');
+  if (!jobs.length) { el.innerHTML = `<div class="empty-state" style="padding:40px 20px;"><div class="empty-state-icon">💼</div><h3>No jobs yet</h3><p>Check back soon!</p></div>`; return; }
+  el.innerHTML = jobs.map(j => `
+    <div style="padding:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:12px;">
+      <div class="company-logo" style="width:40px;height:40px;font-size:0.85rem;">${j.company_name?.charAt(0) || '?'}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:0.9rem;">${j.title}</div>
+        <div class="text-sm text-muted">${j.company_name} · ${j.location || 'Rwanda'}</div>
+      </div>
+      <a href="jobs.html" class="btn btn-outline btn-sm">Apply</a>
+    </div>`).join('');
+}
+
+function renderProfileChecklist(profile) {
+  const checks = [
+    { label: '✅ Basic info', done: true },
+    { label: profile.resume ? '✅ Resume' : '❌ Resume', done: !!profile.resume },
+    { label: profile.skills ? '✅ Skills' : '❌ Skills', done: !!profile.skills },
+    { label: profile.photo ? '✅ Photo' : '❌ Photo', done: !!profile.photo },
+  ];
+  const done = checks.filter(c => c.done).length;
+  const pct = Math.round((done / checks.length) * 100);
+  document.getElementById('profile-pct').textContent = `${pct}% done`;
+  document.getElementById('profile-bar').style.width = `${pct}%`;
+  document.getElementById('profile-checklist').innerHTML = checks.map(c =>
+    `<span style="font-size:0.8rem;color:${c.done ? 'var(--green)' : 'var(--gray-400)'};">${c.label}</span>`
+  ).join('');
+}
+</script>
+</body>
+</html>

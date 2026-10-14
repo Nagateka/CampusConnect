@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post a Job — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Company Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="post-job.html" class="nav-item active"><span class="nav-icon">➕</span> Post a Job</a>
+      <a href="applicants.html" class="nav-item"><span class="nav-icon">👥</span> Applicants</a>
+      <a href="schedule.html" class="nav-item"><span class="nav-icon">📅</span> Interviews</a>
+      <div class="nav-section-label">Account</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">C</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Company</div>
+          <div class="sidebar-user-role">Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Post a Job</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔</button>
+        <div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">C</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>Post a New Job</h1>
+            <p>Fill in the details below — students will be notified of new opportunities.</p>
+          </div>
+          <a href="dashboard.html" class="btn btn-ghost">← Back</a>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;">
+        <!-- FORM -->
+        <div class="card">
+          <div id="error-msg" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:12px 16px;border-radius:8px;font-size:0.875rem;margin-bottom:20px;"></div>
+
+          <div style="margin-bottom:28px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;">BASIC INFORMATION</div>
+            <div class="form-group">
+              <label class="form-label">Job Title <span style="color:var(--red)">*</span></label>
+              <input type="text" id="title" class="form-input" placeholder="e.g. Software Engineer, Data Analyst...">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Job Type <span style="color:var(--red)">*</span></label>
+                <select id="type" class="form-input form-select">
+                  <option value="">Select type</option>
+                  <option>Full-time</option>
+                  <option>Internship</option>
+                  <option>Part-time</option>
+                  <option>Contract</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Industry</label>
+                <select id="industry" class="form-input form-select">
+                  <option value="">Select industry</option>
+                  <option>Technology</option>
+                  <option>Finance & Banking</option>
+                  <option>Telecommunications</option>
+                  <option>Healthcare</option>
+                  <option>Education</option>
+                  <option>Manufacturing</option>
+                  <option>Government</option>
+                  <option>NGO / Non-Profit</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="location" class="form-input" placeholder="Kigali, Rwanda">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Salary / Package</label>
+                <input type="text" id="salary" class="form-input" placeholder="e.g. RWF 500K/month">
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;">JOB DETAILS</div>
+            <div class="form-group">
+              <label class="form-label">Job Description <span style="color:var(--red)">*</span></label>
+              <textarea id="description" class="form-input form-textarea" style="min-height:140px;" placeholder="Describe the role, responsibilities, team, and what the candidate will work on..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Requirements & Skills <span style="color:var(--red)">*</span></label>
+              <textarea id="requirements" class="form-input form-textarea" placeholder="e.g. JavaScript, Node.js, 2+ years experience, Bachelor's degree in CS..."></textarea>
+              <div class="form-hint">Separate skills with commas for better matching</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;">ELIGIBILITY & DEADLINE</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Min CGPA</label>
+                <input type="number" id="min-cgpa" class="form-input" placeholder="e.g. 3.0" min="0" max="4" step="0.1">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Year of Study</label>
+                <select id="target-year" class="form-input form-select">
+                  <option value="">Any year</option>
+                  <option value="3">Year 3+</option>
+                  <option value="4">Final Year only</option>
+                  <option value="graduate">Graduates</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Application Deadline <span style="color:var(--red)">*</span></label>
+                <input type="date" id="deadline" class="form-input">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Number of Openings</label>
+              <input type="number" id="openings" class="form-input" placeholder="e.g. 3" min="1" style="max-width:180px;">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-primary btn-lg" onclick="postJob()" id="post-btn">
+              🚀 Post Job Now
+            </button>
+            <button class="btn btn-ghost btn-lg" onclick="saveDraft()">Save as Draft</button>
+          </div>
+        </div>
+
+        <!-- PREVIEW PANEL -->
+        <div>
+          <div class="card" style="position:sticky;top:84px;">
+            <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-400);margin-bottom:16px;">LIVE PREVIEW</div>
+            <div class="job-card" style="box-shadow:none;border:1px solid var(--gray-200);padding:16px;">
+              <div class="job-card-header">
+                <div class="company-logo" id="preview-logo">?</div>
+                <div>
+                  <div class="job-card-title" id="preview-title">Job Title</div>
+                  <div class="job-card-company" id="preview-company">Your Company · Kigali</div>
+                </div>
+              </div>
+              <div class="job-card-tags" id="preview-tags">
+                <span class="badge badge-blue">Full-time</span>
+              </div>
+              <div class="job-card-footer">
+                <div>
+                  <div class="job-salary" id="preview-salary">Competitive</div>
+                  <div class="job-deadline" id="preview-deadline">Deadline: —</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-200);">
+              <div style="font-size:0.8rem;font-weight:600;color:var(--gray-400);margin-bottom:10px;">CHECKLIST</div>
+              <div id="checklist" style="display:flex;flex-direction:column;gap:6px;font-size:0.825rem;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('company');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('preview-company').textContent = `${user.name} · Kigali`;
+  document.getElementById('preview-logo').textContent = user.name.charAt(0).toUpperCase();
+
+  // Set min deadline to tomorrow
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('deadline').min = tomorrow.toISOString().split('T')[0];
+
+  // Live preview updates
+  ['title','type','salary','deadline','location'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updatePreview);
+    document.getElementById(id)?.addEventListener('change', updatePreview);
+  });
+  updatePreview();
+}
+
+function updatePreview() {
+  const title    = document.getElementById('title').value || 'Job Title';
+  const type     = document.getElementById('type').value || 'Full-time';
+  const salary   = document.getElementById('salary').value || 'Competitive';
+  const deadline = document.getElementById('deadline').value;
+  const location = document.getElementById('location').value || 'Kigali';
+
+  document.getElementById('preview-title').textContent = title;
+  document.getElementById('preview-salary').textContent = salary;
+  document.getElementById('preview-deadline').textContent = `Deadline: ${deadline ? formatDate(deadline) : '—'}`;
+  document.getElementById('preview-company').textContent = `${user.name} · ${location}`;
+  document.getElementById('preview-tags').innerHTML = `<span class="badge badge-blue">${type}</span>`;
+
+  // Checklist
+  const checks = [
+    { label: 'Job title', done: !!document.getElementById('title').value },
+    { label: 'Job type', done: !!document.getElementById('type').value },
+    { label: 'Description', done: document.getElementById('description').value.length > 20 },
+    { label: 'Requirements', done: !!document.getElementById('requirements').value },
+    { label: 'Deadline', done: !!document.getElementById('deadline').value },
+  ];
+  document.getElementById('checklist').innerHTML = checks.map(c =>
+    `<div style="display:flex;align-items:center;gap:8px;color:${c.done ? 'var(--green)' : 'var(--gray-400)'};">
+      <span>${c.done ? '✅' : '⬜'}</span> ${c.label}
+    </div>`
+  ).join('');
+}
+
+async function postJob() {
+  const btn = document.getElementById('post-btn');
+  const errMsg = document.getElementById('error-msg');
+  errMsg.style.display = 'none';
+
+  const title       = document.getElementById('title').value.trim();
+  const type        = document.getElementById('type').value;
+  const description = document.getElementById('description').value.trim();
+  const requirements= document.getElementById('requirements').value.trim();
+  const deadline    = document.getElementById('deadline').value;
+
+  if (!title || !type || !description || !requirements || !deadline) {
+    errMsg.textContent = 'Please fill in all required fields (marked with *).';
+    errMsg.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Posting...';
+  btn.disabled = true;
+
+  const payload = {
+    title, type, description, requirements, deadline,
+    industry:  document.getElementById('industry').value,
+    location:  document.getElementById('location').value || 'Kigali, Rwanda',
+    salary:    document.getElementById('salary').value,
+    min_cgpa:  document.getElementById('min-cgpa').value,
+    openings:  document.getElementById('openings').value || 1,
+    status: 'open'
+  };
+
+  try {
+    await API.post('/jobs', payload);
+    showToast('🎉 Job posted! Students will be notified by email.', 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+  } catch (e) {
+    errMsg.textContent = e.message || 'Failed to post job. Please try again.';
+    errMsg.style.display = 'block';
+    btn.textContent = '🚀 Post Job Now';
+    btn.disabled = false;
+  }
+}
+
+async function saveDraft() {
+  showToast('Draft saved!', 'info');
+}
+</script>
+</body>
+</html>

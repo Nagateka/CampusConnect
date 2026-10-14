@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Dashboard — campusconnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">campusconnect(UTB) <span>Company Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="post-job.html" class="nav-item"><span class="nav-icon">➕</span> Post a Job</a>
+      <a href="applicants.html" class="nav-item"><span class="nav-icon">👥</span> Applicants <span class="nav-badge" id="app-count">0</span></a>
+      <a href="schedule.html" class="nav-item"><span class="nav-icon">📅</span> Interviews</a>
+      <div class="nav-section-label">Account</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">C</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Company</div>
+          <div class="sidebar-user-role">Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Company Dashboard</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+        <a href="post-job.html" class="btn btn-primary btn-sm">+ Post Job</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1 id="welcome-msg">Welcome back! 👋</h1>
+            <p>Manage your job postings and find the best campus talent.</p>
+          </div>
+          <a href="post-job.html" class="btn btn-primary">+ Post New Job</a>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">💼</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-jobs">0</div>
+            <div class="stat-label">Active Job Posts</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📋</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-apps">0</div>
+            <div class="stat-label">Total Applicants</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-interviews">0</div>
+            <div class="stat-label">Interviews Scheduled</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-hired">0</div>
+            <div class="stat-label">Students Hired</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <!-- MY JOBS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>My Job Postings</h3>
+            <a href="post-job.html" class="btn btn-primary btn-sm">+ New</a>
+          </div>
+          <div id="my-jobs">
+            <div class="empty-state" style="padding:40px;">
+              <div class="empty-state-icon">💼</div>
+              <h3>No jobs posted yet</h3>
+              <p>Post your first job to start receiving applications</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT APPLICANTS -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Recent Applicants</h3>
+            <a href="applicants.html" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+          <div id="recent-applicants">
+            <div class="empty-state" style="padding:40px;">
+              <div class="empty-state-icon">👥</div>
+              <h3>No applicants yet</h3>
+              <p>Post a job to start receiving applications</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('company');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('welcome-msg').textContent = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const [stats, jobs, apps] = await Promise.all([
+      API.get('/companies/stats'),
+      API.get('/companies/jobs'),
+      API.get('/companies/applicants?limit=5')
+    ]);
+    renderStats(stats);
+    renderJobs(jobs.jobs || []);
+    renderApplicants(apps.applications || []);
+  } catch (e) {
+    renderStats({ jobs:3, apps:12, interviews:4, hired:2 });
+    renderJobs(getDemoJobs());
+    renderApplicants(getDemoApplicants());
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('stat-jobs').textContent = s.jobs || 0;
+  document.getElementById('stat-apps').textContent = s.apps || 0;
+  document.getElementById('stat-interviews').textContent = s.interviews || 0;
+  document.getElementById('stat-hired').textContent = s.hired || 0;
+  document.getElementById('app-count').textContent = s.apps || 0;
+}
+
+function renderJobs(jobs) {
+  const el = document.getElementById('my-jobs');
+  if (!jobs.length) return;
+  el.innerHTML = `<table><thead><tr><th>Title</th><th>Applicants</th><th>Status</th><th></th></tr></thead><tbody>
+    ${jobs.map(j => `<tr>
+      <td><div style="font-weight:600;">${j.title}</div><div class="text-xs text-muted">Deadline: ${formatDate(j.deadline)}</div></td>
+      <td><strong>${j.applicant_count||0}</strong></td>
+      <td>${statusBadge(j.status)}</td>
+      <td><a href="applicants.html?job=${j.id}" class="btn btn-ghost btn-sm">View</a></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderApplicants(apps) {
+  const el = document.getElementById('recent-applicants');
+  if (!apps.length) return;
+  el.innerHTML = `<table><thead><tr><th>Student</th><th>Job</th><th>Status</th><th></th></tr></thead><tbody>
+    ${apps.map(a => `<tr>
+      <td class="td-name"><div class="avatar" style="width:32px;height:32px;font-size:0.75rem;">${(a.student_name||'?').charAt(0)}</div>${a.student_name}</td>
+      <td class="text-sm text-muted">${a.job_title}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td><a href="applicants.html" class="btn btn-ghost btn-sm">Review</a></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function getDemoJobs() {
+  return [
+    { id:1, title:'Software Engineer', status:'open', deadline:'2025-08-30', applicant_count:8 },
+    { id:2, title:'Data Analyst', status:'open', deadline:'2025-08-25', applicant_count:5 },
+    { id:3, title:'IT Intern', status:'closed', deadline:'2025-07-15', applicant_count:22 },
+  ];
+}
+
+function getDemoApplicants() {
+  return [
+    { student_name:'Alice Mukamana', job_title:'Software Engineer', status:'shortlisted' },
+    { student_name:'Bob Nzeyimana', job_title:'Software Engineer', status:'applied' },
+    { student_name:'Claire Uwase', job_title:'Data Analyst', status:'applied' },
+  ];
+}
+</script>
+</body>
+</html>

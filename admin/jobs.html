@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Jobs — CampusConnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html"         class="nav-item active"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html"      class="nav-item"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html"    class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">All Jobs</div>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" id="search-input" placeholder="Search jobs..." oninput="filterJobs()">
+      </div>
+      <div class="topbar-actions">
+        <div class="avatar" style="background:#EF4444;width:36px;height:36px;font-size:0.875rem;" id="topbar-avatar">A</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <h1>All Job Postings</h1>
+            <p id="jobs-count-label">Loading...</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getExportData(),'all-jobs')">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-icon blue">💼</div><div class="stat-info"><div class="stat-value" id="s-total">0</div><div class="stat-label">Total Jobs</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-value" id="s-open">0</div><div class="stat-label">Open</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">📋</div><div class="stat-info"><div class="stat-value" id="s-apps">0</div><div class="stat-label">Total Applicants</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">🏆</div><div class="stat-info"><div class="stat-value" id="s-hired">0</div><div class="stat-label">Total Hired</div></div></div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="card" style="margin-bottom:20px;padding:16px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Status</label>
+            <select id="filter-status" class="form-input form-select" onchange="filterJobs()" style="width:150px;">
+              <option value="">All Statuses</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Type</label>
+            <select id="filter-type" class="form-input form-select" onchange="filterJobs()" style="width:150px;">
+              <option value="">All Types</option>
+              <option>Full-time</option>
+              <option>Internship</option>
+              <option>Part-time</option>
+              <option>Contract</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div id="jobs-table">
+          <div class="empty-state" style="padding:60px;"><div class="empty-state-icon">⏳</div><h3>Loading jobs...</h3></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- JOB DETAIL MODAL -->
+<div class="modal-overlay" id="jobModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 id="modal-job-title">Job Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+let allJobs = [];
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  initUpgrades('admin');
+  loadJobs();
+}
+
+async function loadJobs() {
+  Skeleton.show('jobs-table', 'tableRows', 5);
+  try {
+    const res = await API.get('/admin/jobs');
+    allJobs = res.jobs || [];
+  } catch (e) {
+    allJobs = [];
+    showToast('Could not load jobs from server.', 'error');
+  }
+  updateStats();
+  renderJobs(allJobs);
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent = allJobs.length;
+  document.getElementById('s-open').textContent  = allJobs.filter(j => j.status === 'open').length;
+  document.getElementById('s-apps').textContent  = allJobs.reduce((a,j) => a + (j.applicant_count||0), 0);
+  document.getElementById('s-hired').textContent = allJobs.reduce((a,j) => a + (j.hired_count||0), 0);
+  document.getElementById('jobs-count-label').textContent = `${allJobs.length} job posting${allJobs.length !== 1 ? 's' : ''} across all companies`;
+}
+
+function filterJobs() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  const type   = document.getElementById('filter-type').value;
+  const filtered = allJobs.filter(j => {
+    const matchSearch = !search || j.title.toLowerCase().includes(search) || j.company_name.toLowerCase().includes(search);
+    const matchStatus = !status || j.status === status;
+    const matchType   = !type   || j.type === type;
+    return matchSearch && matchStatus && matchType;
+  });
+  renderJobs(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-type').value = '';
+  renderJobs(allJobs);
+}
+
+function renderJobs(jobs) {
+  const el = document.getElementById('jobs-table');
+  if (!jobs.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:60px;"><div class="empty-state-icon">💼</div><h3>No jobs found</h3><p>Companies haven't posted any jobs yet, or none match your filters.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table>
+    <thead><tr><th>Job Title</th><th>Company</th><th>Type</th><th>Applicants</th><th>Hired</th><th>Deadline</th><th>Status</th><th></th></tr></thead>
+    <tbody>${jobs.map(j => `<tr>
+      <td style="font-weight:600;">${j.title}</td>
+      <td class="td-name"><div class="company-logo" style="width:30px;height:30px;font-size:0.7rem;">${j.company_name.charAt(0)}</div>${j.company_name}</td>
+      <td><span class="badge badge-blue">${j.type||'Full-time'}</span></td>
+      <td><strong>${j.applicant_count||0}</strong></td>
+      <td><strong style="color:var(--green);">${j.hired_count||0}</strong></td>
+      <td class="text-sm">${formatDate(j.deadline)}</td>
+      <td>${statusBadge(j.status)}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="viewJob(${JSON.stringify(j).replace(/"/g,'&quot;')})">View</button>
+          ${j.status === 'open'
+            ? `<button class="btn btn-sm" style="background:#FEF2F2;color:var(--red);" onclick="toggleStatus(${j.id},'closed','${j.title}')">Close</button>`
+            : `<button class="btn btn-sm" style="background:#ECFDF5;color:var(--green);" onclick="toggleStatus(${j.id},'open','${j.title}')">Reopen</button>`}
+        </div>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function viewJob(j) {
+  document.getElementById('modal-job-title').textContent = j.title;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+      <div class="company-logo" style="width:48px;height:48px;">${j.company_name.charAt(0)}</div>
+      <div>
+        <div style="font-weight:700;">${j.company_name}</div>
+        <div class="text-sm text-muted">${j.industry||'—'} · ${j.location||'Kigali, Rwanda'}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:1.2rem;color:var(--blue);">${j.applicant_count||0}</div><div class="text-xs text-muted">Applicants</div></div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:1.2rem;color:var(--green);">${j.hired_count||0}</div><div class="text-xs text-muted">Hired</div></div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:1.2rem;">${j.openings||1}</div><div class="text-xs text-muted">Openings</div></div>
+    </div>
+    <div style="margin-bottom:14px;"><div class="text-xs text-muted" style="margin-bottom:6px;">DESCRIPTION</div><p style="font-size:0.875rem;line-height:1.6;">${j.description||'—'}</p></div>
+    <div style="margin-bottom:14px;"><div class="text-xs text-muted" style="margin-bottom:6px;">REQUIREMENTS</div><p style="font-size:0.875rem;line-height:1.6;">${j.requirements||'—'}</p></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div><div class="text-xs text-muted">SALARY</div><div style="font-weight:600;">${j.salary||'Competitive'}</div></div>
+      <div><div class="text-xs text-muted">DEADLINE</div><div style="font-weight:600;">${formatDate(j.deadline)}</div></div>
+    </div>`;
+  document.getElementById('jobModal').classList.add('open');
+}
+
+async function toggleStatus(id, status, title) {
+  if (!confirm(`${status === 'closed' ? 'Close' : 'Reopen'} "${title}"?`)) return;
+  try {
+    await API.put(`/admin/jobs/${id}/status`, { status });
+    showToast(`✅ Job ${status}.`, 'success');
+    loadJobs();
+  } catch (e) {
+    showToast(e.message || 'Failed to update job.', 'error');
+  }
+}
+
+function closeModal() { document.getElementById('jobModal').classList.remove('open'); }
+function getExportData() { return allJobs.map(j => ({ Title:j.title, Company:j.company_name, Type:j.type, Applicants:j.applicant_count||0, Hired:j.hired_count||0, Status:j.status })); }
+</script>
+</body>
+</html>

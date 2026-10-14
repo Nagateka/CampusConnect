@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Applications — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎓</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Student Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="jobs.html" class="nav-item"><span class="nav-icon">💼</span> Browse Jobs</a>
+      <a href="applications.html" class="nav-item active"><span class="nav-icon">📋</span> My Applications</a>
+      <div class="nav-section-label">Account</div>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Loading...</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Student</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">My Applications</div>
+      <div class="topbar-actions">
+        <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+        <div class="avatar" id="topbar-avatar" style="width:36px;height:36px;font-size:0.875rem;">S</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Application Tracker</h1>
+        <p>Track the status of every job you've applied for</p>
+      </div>
+
+      <!-- STATUS FILTER TABS -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="filterByStatus('')" id="tab-all">All</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('applied')" id="tab-applied">Applied</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('shortlisted')" id="tab-shortlisted">⭐ Shortlisted</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('interviewed')" id="tab-interviewed">📅 Interviewed</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('selected')" id="tab-selected">🏆 Selected</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterByStatus('rejected')" id="tab-rejected">Rejected</button>
+      </div>
+
+      <!-- APPLICATIONS LIST -->
+      <div id="applications-list"></div>
+    </div>
+  </main>
+</div>
+
+<!-- APPLICATION DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3 id="detail-title">Application Details</h3>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script>
+const user = requireRole('student');
+let allApps = [];
+
+if (user) {
+  initSidebar();
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  const ta = document.getElementById('topbar-avatar');
+  if (ta) ta.textContent = user.name.charAt(0).toUpperCase();
+  const sa = document.getElementById('sidebar-avatar');
+  if (sa) sa.textContent = user.name.charAt(0).toUpperCase();
+  loadApplications();
+}
+
+async function loadApplications() {
+  try {
+    const res = await API.get('/applications/mine');
+    allApps = res.applications || [];
+    renderApplications(allApps);
+  } catch (e) {
+    allApps = getDemoApps();
+    renderApplications(allApps);
+  }
+}
+
+function renderApplications(apps) {
+  const el = document.getElementById('applications-list');
+  if (!apps.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No applications found</h3><p>Apply to jobs to see them here</p><a href="jobs.html" class="btn btn-primary" style="margin-top:16px;">Browse Jobs</a></div>`;
+    return;
+  }
+
+  el.innerHTML = apps.map(a => `
+    <div class="card card-hover" style="margin-bottom:16px;cursor:pointer;" onclick="showDetail(${JSON.stringify(a).replace(/"/g, '&quot;')})">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="company-logo">${(a.company_name||'?').charAt(0)}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <span style="font-weight:700;font-size:1rem;">${a.job_title}</span>
+            ${statusBadge(a.status)}
+          </div>
+          <div style="font-size:0.875rem;color:var(--gray-400);">${a.company_name} · Applied ${timeAgo(a.applied_at)}</div>
+        </div>
+        <div style="text-align:right;">
+          ${a.interview_date ? `<div style="font-size:0.8rem;background:#EFF6FF;color:var(--blue);padding:4px 10px;border-radius:6px;font-weight:600;">📅 Interview: ${formatDate(a.interview_date)}</div>` : ''}
+          <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Click to view details →</div>
+        </div>
+      </div>
+
+      <!-- STATUS TIMELINE -->
+      <div class="status-timeline" style="margin-top:16px;">
+        ${['applied','shortlisted','interviewed','selected'].map((s,i) => {
+          const statuses = ['applied','shortlisted','interviewed','selected','rejected'];
+          const currentIdx = statuses.indexOf(a.status);
+          const stepIdx = statuses.indexOf(s);
+          const isDone = currentIdx > stepIdx || (a.status !== 'rejected' && s === a.status);
+          const isActive = s === a.status && a.status !== 'rejected';
+          return `<div class="status-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}">
+            <div class="status-dot">${isDone ? '✓' : i+1}</div>
+            <div class="status-step-label">${s.charAt(0).toUpperCase()+s.slice(1)}</div>
+          </div>`;
+        }).join('')}
+        ${a.status === 'rejected' ? `<div style="margin-left:auto;align-self:center;"><span class="badge badge-red">Rejected</span></div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function filterByStatus(status) {
+  document.querySelectorAll('[id^="tab-"]').forEach(b => { b.className = 'btn btn-ghost btn-sm'; });
+  const activeTab = document.getElementById(`tab-${status || 'all'}`);
+  if (activeTab) activeTab.className = 'btn btn-primary btn-sm';
+  renderApplications(status ? allApps.filter(a => a.status === status) : allApps);
+}
+
+function showDetail(app) {
+  document.getElementById('detail-title').textContent = `${app.job_title} — ${app.company_name}`;
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">STATUS</div>${statusBadge(app.status)}</div>
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">APPLIED ON</div><div style="font-weight:600;">${formatDate(app.applied_at)}</div></div>
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">COMPANY</div><div style="font-weight:600;">${app.company_name}</div></div>
+      <div><div class="text-xs text-muted" style="margin-bottom:4px;">JOB</div><div style="font-weight:600;">${app.job_title}</div></div>
+    </div>
+    ${app.interview_date ? `
+    <div style="background:#EFF6FF;border-radius:8px;padding:16px;margin-bottom:16px;">
+      <div style="font-weight:700;color:var(--blue);margin-bottom:8px;">📅 Interview Scheduled</div>
+      <div style="font-size:0.875rem;">Date: <strong>${formatDate(app.interview_date)}</strong></div>
+      <div style="font-size:0.875rem;">Mode: <strong>${app.interview_mode || 'In-person'}</strong></div>
+      ${app.interview_notes ? `<div style="font-size:0.875rem;margin-top:8px;">${app.interview_notes}</div>` : ''}
+    </div>` : ''}
+    ${app.cover_letter ? `
+    <div><div class="text-xs text-muted" style="margin-bottom:8px;">YOUR COVER LETTER</div>
+    <div style="background:var(--gray-50);border-radius:8px;padding:14px;font-size:0.875rem;line-height:1.6;">${app.cover_letter}</div></div>` : ''}
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+function getDemoApps() {
+  return [
+    { job_title:'Software Engineer', company_name:'MTN Rwanda', status:'shortlisted', applied_at: new Date(Date.now()-3*86400000).toISOString(), interview_date: new Date(Date.now()+2*86400000).toISOString(), interview_mode:'Video Call', interview_notes:'Please prepare a coding challenge.', cover_letter:'I am excited to apply for this role...' },
+    { job_title:'Data Analyst', company_name:'Bank of Kigali', status:'applied', applied_at: new Date(Date.now()-86400000).toISOString() },
+    { job_title:'IT Intern', company_name:'RwandAir', status:'rejected', applied_at: new Date(Date.now()-7*86400000).toISOString() },
+  ];
+}
+</script>
+</body>
+</html>

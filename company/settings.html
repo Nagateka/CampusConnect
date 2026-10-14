@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — CampusConnect(UTB)</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Company Portal</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="post-job.html"   class="nav-item"><span class="nav-icon">➕</span> Post a Job</a>
+      <a href="applicants.html" class="nav-item"><span class="nav-icon">👥</span> Applicants</a>
+      <a href="schedule.html"   class="nav-item"><span class="nav-icon">📅</span> Interviews</a>
+      <div class="nav-section-label">Account</div>
+      <a href="settings.html" class="nav-item active"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar">C</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Company</div>
+          <div class="sidebar-user-role">Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Settings</div>
+      <div class="topbar-actions"></div>
+    </div>
+
+    <div class="page-content" style="max-width:700px;">
+      <div class="page-header">
+        <h1>Company Settings</h1>
+        <p>Manage your company profile and account preferences</p>
+      </div>
+
+      <div id="error-msg" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:var(--red);padding:12px 16px;border-radius:8px;font-size:0.875rem;margin-bottom:20px;"></div>
+
+      <!-- COMPANY PROFILE -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">COMPANY PROFILE</div>
+        <div class="form-group">
+          <label class="form-label">Contact Person Name</label>
+          <input type="text" id="set-name" class="form-input" placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="set-email" class="form-input" disabled style="background:var(--gray-50);color:var(--gray-400);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input type="text" id="set-company-name" class="form-input" placeholder="Company name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Industry</label>
+          <select id="set-industry" class="form-input form-select">
+            <option value="">Select industry</option>
+            <option>Technology</option>
+            <option>Finance & Banking</option>
+            <option>Telecommunications</option>
+            <option>Healthcare</option>
+            <option>Education</option>
+            <option>Manufacturing</option>
+            <option>Government</option>
+            <option>NGO / Non-Profit</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Description</label>
+          <textarea id="set-description" class="form-input form-textarea" placeholder="Tell students about your company..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="text" id="set-website" class="form-input" placeholder="https://yourcompany.com">
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()" id="save-profile-btn">💾 Save Company Profile</button>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:16px;">CHANGE PASSWORD</div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" id="current-pwd" class="form-input" placeholder="Enter current password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" id="new-pwd" class="form-input" placeholder="At least 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" id="confirm-pwd" class="form-input" placeholder="Repeat new password">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()" id="save-pwd-btn">🔒 Update Password</button>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="card" style="border-color:#FECACA;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:16px;">DANGER ZONE</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Sign out</div>
+            <div class="text-sm text-muted">End your current session</div>
+          </div>
+          <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('company');
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('set-name').value = user.name;
+  document.getElementById('set-email').value = user.email;
+  initUpgrades('company');
+  loadSettings();
+}
+
+async function loadSettings() {
+  try {
+    const res = await API.get('/companies/settings');
+    const s = res.settings || {};
+    if (s.company_name) document.getElementById('set-company-name').value = s.company_name;
+    if (s.industry)     document.getElementById('set-industry').value = s.industry;
+    if (s.description)  document.getElementById('set-description').value = s.description;
+    if (s.website)       document.getElementById('set-website').value = s.website;
+  } catch (e) { /* silent */ }
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-profile-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    const payload = {
+      name: document.getElementById('set-name').value,
+      companyName: document.getElementById('set-company-name').value,
+      industry: document.getElementById('set-industry').value,
+      description: document.getElementById('set-description').value,
+      website: document.getElementById('set-website').value,
+    };
+    await API.put('/companies/settings', payload);
+    const u = JSON.parse(localStorage.getItem('user'));
+    u.name = payload.name; localStorage.setItem('user', JSON.stringify(u));
+    document.getElementById('sidebar-user-name').textContent = payload.name;
+    showToast('✅ Company profile updated!', 'success');
+  } catch (e) {
+    showToast(e.message || 'Failed to update profile.', 'error');
+  }
+  btn.textContent = '💾 Save Company Profile'; btn.disabled = false;
+}
+
+async function changePassword() {
+  const current = document.getElementById('current-pwd').value;
+  const next    = document.getElementById('new-pwd').value;
+  const confirm = document.getElementById('confirm-pwd').value;
+  const errEl   = document.getElementById('error-msg');
+  errEl.style.display = 'none';
+
+  if (!current || !next) { errEl.textContent = 'Please fill in all password fields.'; errEl.style.display='block'; return; }
+  if (next.length < 8)   { errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display='block'; return; }
+  if (next !== confirm)  { errEl.textContent = 'New passwords do not match.'; errEl.style.display='block'; return; }
+
+  const btn = document.getElementById('save-pwd-btn');
+  btn.textContent = 'Updating...'; btn.disabled = true;
+  try {
+    await API.put('/companies/settings', { currentPassword: current, newPassword: next });
+    showToast('🔒 Password updated successfully!', 'success');
+    document.getElementById('current-pwd').value = '';
+    document.getElementById('new-pwd').value = '';
+    document.getElementById('confirm-pwd').value = '';
+  } catch (e) {
+    errEl.textContent = e.message || 'Failed to update password.';
+    errEl.style.display = 'block';
+  }
+  btn.textContent = '🔒 Update Password'; btn.disabled = false;
+}
+</script>
+</body>
+</html>

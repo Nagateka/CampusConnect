@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — CampusConnect(UTB) Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/upgrades.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div class="sidebar-logo-text">CampusConnect(UTB) <span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html"  class="nav-item"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="students.html"   class="nav-item"><span class="nav-icon">🎓</span> Students</a>
+      <a href="companies.html"  class="nav-item"><span class="nav-icon">🏢</span> Companies</a>
+      <div class="nav-section-label">Management</div>
+      <a href="jobs.html"         class="nav-item"><span class="nav-icon">💼</span> All Jobs</a>
+      <a href="applications.html" class="nav-item"><span class="nav-icon">📋</span> Applications</a>
+      <a href="reports.html"      class="nav-item active"><span class="nav-icon">📈</span> Reports</a>
+      <a href="analytics.html"    class="nav-item"><span class="nav-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">System</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+      <a href="#" class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:#EF4444;">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" style="color:#F87171;">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Reports</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="Printer.print('Placement Report')">🖨️ Print Report</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="print-header">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+          <div style="width:40px;height:40px;background:#2563EB;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;">🎓</div>
+          <div><h1 style="margin:0;">campusconnect</h1><p style="margin:0;color:#666;font-size:0.8rem;">Campus Recruitment Platform</p></div>
+        </div>
+        <div style="text-align:right;"><strong>Official Placement Report</strong><br><span style="font-size:0.8rem;color:#666;" id="print-date"></span></div>
+      </div>
+
+      <div class="page-header">
+        <h1>Placement Reports</h1>
+        <p>Comprehensive recruitment data across the entire platform</p>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div class="stats-grid" id="overview-stats" style="margin-bottom:28px;">
+        <div class="stat-card"><div class="stat-icon blue">🎓</div><div class="stat-info"><div class="stat-value" id="o-students">—</div><div class="stat-label">Total Students</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">🏢</div><div class="stat-info"><div class="stat-value" id="o-companies">—</div><div class="stat-label">Total Companies</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div class="stat-info"><div class="stat-value" id="o-apps">—</div><div class="stat-label">Total Applications</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">🏆</div><div class="stat-info"><div class="stat-value" id="o-placed">—</div><div class="stat-label">Students Placed</div></div></div>
+      </div>
+
+      <!-- CHARTS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+        <div class="chart-wrap">
+          <div class="chart-header"><div><div class="chart-title">Applications by Status</div><div class="chart-subtitle">Current distribution</div></div></div>
+          <div class="chart-body"><canvas id="chart-status" style="width:100%;"></canvas></div>
+          <div class="chart-legend" id="status-legend"></div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-header"><div><div class="chart-title">Placements by Branch</div><div class="chart-subtitle">Which departments place most</div></div></div>
+          <div class="chart-body"><canvas id="chart-branch" style="width:100%;"></canvas></div>
+        </div>
+      </div>
+
+      <!-- COMPANY PERFORMANCE TABLE -->
+      <div class="table-wrap" style="margin-bottom:24px;">
+        <div class="table-header">
+          <h3>Company Performance</h3>
+          <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getCompanyExport(),'company-performance')">⬇ Export</button>
+        </div>
+        <div id="company-table">
+          <div class="empty-state" style="padding:40px;"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+
+      <!-- BRANCH TABLE -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Branch-wise Placement Summary</h3>
+          <button class="btn btn-ghost btn-sm" onclick="Printer.exportCSV(getBranchExport(),'branch-summary')">⬇ Export</button>
+        </div>
+        <div id="branch-table">
+          <div class="empty-state" style="padding:40px;"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="../js/api.js"></script>
+<script src="../js/upgrades.js"></script>
+<script>
+const user = requireRole('admin');
+let reportData = null;
+
+if (user) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  initUpgrades('admin');
+  loadReport();
+}
+
+async function loadReport() {
+  try {
+    reportData = await API.get('/admin/reports');
+  } catch (e) {
+    showToast('Could not load report data.', 'error');
+    reportData = { overview:{}, byStatus:[], byBranch:[], byCompany:[] };
+  }
+  renderOverview();
+  setTimeout(renderCharts, 50);
+  renderCompanyTable();
+  renderBranchTable();
+}
+
+function renderOverview() {
+  const o = reportData.overview;
+  document.getElementById('o-students').textContent  = o.totalStudents  || 0;
+  document.getElementById('o-companies').textContent = o.totalCompanies || 0;
+  document.getElementById('o-apps').textContent       = o.totalApps      || 0;
+  document.getElementById('o-placed').textContent     = o.totalPlaced    || 0;
+}
+
+function renderCharts() {
+  const statusColors = { applied:'#2563EB', shortlisted:'#F59E0B', interviewed:'#8B5CF6', selected:'#10B981', rejected:'#EF4444' };
+  const byStatus = reportData.byStatus || [];
+  const labels = byStatus.map(s => s.status);
+  const values = byStatus.map(s => s.count);
+
+  if (values.length) {
+    Charts.donut('chart-status', labels, values, { height: 180 });
+    document.getElementById('status-legend').innerHTML = byStatus.map(s =>
+      `<div class="legend-item"><div class="legend-dot" style="background:${statusColors[s.status]||'#94A3B8'};"></div>${s.status} (${s.count})</div>`
+    ).join('');
+  } else {
+    document.getElementById('status-legend').innerHTML = `<div class="text-sm text-muted">No application data yet</div>`;
+  }
+
+  const byBranch = (reportData.byBranch || []).filter(b => b.branch);
+  if (byBranch.length) {
+    Charts.bar('chart-branch', byBranch.map(b=>b.branch), byBranch.map(b=>b.placed||0), { height: 180, singleColor: true });
+  }
+}
+
+function renderCompanyTable() {
+  const el = document.getElementById('company-table');
+  const companies = reportData.byCompany || [];
+  if (!companies.length) { el.innerHTML = `<div class="empty-state" style="padding:40px;"><div class="empty-state-icon">🏢</div><h3>No company data yet</h3></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Company</th><th>Jobs Posted</th><th>Applications</th><th>Hired</th><th>Success Rate</th></tr></thead>
+    <tbody>${companies.map(c => {
+      const rate = c.applications > 0 ? Math.round((c.hired||0)/c.applications*100) : 0;
+      return `<tr>
+        <td class="td-name"><div class="company-logo" style="width:30px;height:30px;font-size:0.7rem;">${c.company_name.charAt(0)}</div>${c.company_name}</td>
+        <td>${c.jobs_posted||0}</td>
+        <td>${c.applications||0}</td>
+        <td><strong style="color:var(--green);">${c.hired||0}</strong></td>
+        <td><span class="badge badge-blue">${rate}%</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderBranchTable() {
+  const el = document.getElementById('branch-table');
+  const branches = (reportData.byBranch || []).filter(b => b.branch);
+  if (!branches.length) { el.innerHTML = `<div class="empty-state" style="padding:40px;"><div class="empty-state-icon">🎓</div><h3>No branch data yet</h3></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Branch</th><th>Applications</th><th>Placed</th><th>Placement Rate</th></tr></thead>
+    <tbody>${branches.map(b => {
+      const rate = b.applications > 0 ? Math.round((b.placed||0)/b.applications*100) : 0;
+      return `<tr>
+        <td style="font-weight:600;">${b.branch}</td>
+        <td>${b.applications||0}</td>
+        <td><strong style="color:var(--green);">${b.placed||0}</strong></td>
+        <td><span class="badge badge-green">${rate}%</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function getCompanyExport() { return (reportData.byCompany||[]).map(c=>({Company:c.company_name,Jobs:c.jobs_posted||0,Applications:c.applications||0,Hired:c.hired||0})); }
+function getBranchExport()  { return (reportData.byBranch||[]).filter(b=>b.branch).map(b=>({Branch:b.branch,Applications:b.applications||0,Placed:b.placed||0})); }
+</script>
+</body>
+</html>
